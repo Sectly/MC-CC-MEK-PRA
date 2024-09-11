@@ -11,7 +11,7 @@ local GLOBAL = {
         ON_SIGNAL = redstone.getInput("top"),
 
 		REACTOR = {
-            ONLINE = = reactor.getStatus(),
+            ONLINE = reactor.getStatus(),
             BURN_RATE = reactor.getBurnRate(),
             MAX_BURN_RATE = reactor.getMaxBurnRate(),
             TEMPERATURE = reactor.getTemperature(),
@@ -33,7 +33,7 @@ local GLOBAL = {
         COMPUTER = {
             NAME = "Paid Re-Actor"; -- // Name To Display In Console And On Screen
             FORCE_LOCK_EXECUTION = true; -- // Prevent From Terminating The Program Or Exiting The GUI/Console
-        }
+        };
 
         ALARM = {
             EMIT_REDSTONE_ON_EMERGENCY = true; -- // Emit An Redstone Signal When On Emergency State
@@ -162,7 +162,7 @@ local function UpdateData()
         ON_SIGNAL = redstone.getInput("top"),
 
         REACTOR = {
-            ONLINE = = reactor.getStatus(),
+            ONLINE = reactor.getStatus(),
             BURN_RATE = reactor.getBurnRate(),
             MAX_BURN_RATE = reactor.getMaxBurnRate(),
             TEMPERATURE = reactor.getTemperature(),
@@ -238,8 +238,6 @@ local function createMirroredTerminal()
 
         -- Redirect output to both the terminal and monitor
         term.redirect(redirectToBoth())
-    else
-        print("Error: No monitor found.")
     end
 end
 
@@ -249,41 +247,41 @@ local function DrawScreen()
     term.clear()
     term.setCursorPos(1, 1)
 
-    if state == STATES.UNKNOWN then
+    if state == STATES.ERROR then
         colored("ERROR RETRIEVING DATA", colors.red)
         return
     end
 
     -- Display reactor and lever status
     colored("REACTOR: ")
-    colored(data.reactor_on and "ON " or "OFF", data.reactor_on and colors.green or colors.red)
+    colored(GLOBAL.DATA.REACTOR.ONLINE and "ON " or "OFF", GLOBAL.DATA.REACTOR.ONLINE and colors.green or colors.red)
     colored("  LEVER: ")
-    colored(data.lever_on and "ON " or "OFF", data.lever_on and colors.green or colors.red)
+    colored(GLOBAL.DATA.ON_SIGNAL and "ON " or "OFF", GLOBAL.DATA.ON_SIGNAL and colors.green or colors.red)
     colored("  R. LIMIT: ")
-    colored(string.format("%4.1f", data.reactor_burn_rate), colors.blue)
+    colored(string.format("%4.1f", GLOBAL.DATA.REACTOR.BURN_RATE), colors.blue)
     colored("/", colors.lightGray)
-    colored(string.format("%4.1f", data.reactor_max_burn_rate), colors.blue)
+    colored(string.format("%4.1f", GLOBAL.DATA.REACTOR.MAX_BURN_RATE), colors.blue)
 
     term.setCursorPos(1, 3)
 
     -- Display reactor status
     colored("STATUS: ")
-    if state == STATES.READY then
-        colored("READY, flip lever to start", colors.blue)
-    elseif state == STATES.RUNNING then
-        colored("RUNNING, flip lever to stop", colors.green)
-    elseif state == STATES.ESTOP and not all_rules_met() then
-        colored("EMERGENCY STOP, safety rules violated", colors.red)
-    elseif state == STATES.ESTOP then
-        colored("EMERGENCY STOP, toggle lever to reset", colors.red)
+    if GLOBAL.STATE == STATES.IDLE or GLOBAL.STATE == STATES.BOOTING then
+        colored("READY, Flip Lever To Start", colors.blue)
+    elseif GLOBAL.STATE == STATES.RUNNING then
+        colored("RUNNING, Flip Lever To Stop", colors.green)
+    elseif GLOBAL.STATE == STATES.EMERGENCY and not AllChecksMet() then
+        colored("EMERGENCY STOP, Safety Check Violated!", colors.red)
+    elseif GLOBAL.STATE == STATES.EMERGENCY then
+        colored("EMERGENCY STOP, Toggle Lever To Reset!", colors.red)
     end
 end
 
 -- Function to update and display the safety rules
 local function DrawRules()
     term.clear()
-    for i, rule in ipairs(rules) do
-        local ok, text = rule()
+    for Num, Check in ipairs(CHECKS) do
+        local ok, text = Check()
         term.setCursorPos(1, i + 1)
         if ok then
             colored("[  OK  ] ", colors.green)
