@@ -309,8 +309,10 @@ local function UpdateScreen()
 end
 
 local function LockSystem()
+    print(" ")
 	print("SYSTEM LOCKED. Enter 'unlock' to unlock the system.")
 	print("It only locks up after an SCRAM, Please double check the reactor before starting it again.")
+    print(" ")
 
 	while true do
 		local input = read()
@@ -319,7 +321,9 @@ local function LockSystem()
 			pcall(NETWORK.REACTOR.scram)
 			GLOBAL.STATE = STATES.STOPPED
 			SaveFile(GLOBAL.CONFIG, "pra/config.json")
-			print("System unlocked.")
+			print("System unlocked, Rebooting...")
+            sleep(1)
+            os.reboot()
 			break
 		else
 			print("Invalid command. System remains locked.")
