@@ -218,6 +218,9 @@ local function drawReactorStatus(state, locked)
 		term.setTextColor(colors.red)
 		term.write("Reactor Status: OFFLINE")
 	end
+
+    term.setTextColor(colors.white)
+    term.write(" | Paid Re-Actor V0.0.1 By: Sectly")
 end
 
 -- Helper function to check if a specific violation exists in FailedChecks
