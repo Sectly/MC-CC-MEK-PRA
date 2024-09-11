@@ -600,7 +600,9 @@ local function Init()
 		pcall(NETWORK.REACTOR.scram)
 		GLOBAL.STATE = STATES.STOPPED
 
-        basalt.autoUpdate()
+        local Task = coroutine.create(basalt.autoUpdate)
+
+        coroutine.resume(Task)
 
 		DefaultLoop()
 	else
