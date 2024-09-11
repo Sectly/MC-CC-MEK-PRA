@@ -10,7 +10,7 @@ local NETWORK = {
 }
 
 local GLOBAL = {
-    STATE = -1; -- // Current State
+    STATE = 0; -- // Current State
 
     DATA = { -- // Live Data From Connected Peripherals
         ON_SIGNAL = redstone.getInput("top"),
@@ -34,15 +34,6 @@ local GLOBAL = {
     CONFIG = { -- // Config File, On First Startup You Will See An Step-By-Step Guided Config Screen (Stored In pra/config.json)
         IS_SETUP = false; -- // Is Setup Check (Don't Touch This)
         LOCKED = false; -- // On Emergency Lock The System, Can Only Be Unlocked Via Screen Using The Lock/Unlock Button (Don't Touch This)
-
-        COMPUTER = {
-            NAME = "Paid Re-Actor"; -- // Name To Display In Console And On Screen
-            FORCE_LOCK_EXECUTION = true; -- // Prevent From Terminating The Program Or Exiting The GUI/Console
-        };
-
-        ALARM = {
-            EMIT_REDSTONE_ON_EMERGENCY = true; -- // Emit An Redstone Signal When On Emergency State
-        },
 
         REACTOR = {
             MAXIMUM_TEMPERATURE = {
@@ -84,8 +75,7 @@ local GLOBAL = {
 
 -- // List Of States
 local STATES = {
-    BOOTING = -1;
-	IDLE = 0;
+    BOOTING = 0;
 	RUNNING = 1;
 	STOPPED = 2;
 	EMERGENCY = 3;
@@ -97,12 +87,12 @@ local CHECKS = {}
 
 local function AddCheck(Name, CheckFunction)
 	table.insert(CHECKS, function()
-		local Success, Check_Met, Value, SCRAM_On_Fail = pcall(CheckFunction)
+		local Success, Check_Met, Value, Emergency = pcall(CheckFunction)
 
 		if Success then
-			return Check_Met, string.format("%s (%s)", Name, Value), SCRAM_On_Fail
+			return Check_Met, string.format("%s (%s)", Name, Value), Emergency
 		else
-			return false, Name, SCRAM_On_Fail
+			return false, Name, Emergency
 		end
 	end)
 end
@@ -151,14 +141,32 @@ local function ReadFile(FileName)
 end
 
 -- // Check If All Checks Are Met
+local FailedChecks = {}
+
 local function AllChecksMet()
 	for Num, Check in ipairs(CHECKS) do
-		if not Check() then
-			return false
+        local OK, Name, Emergency = Check()
+
+		if not OK then
+			table.insert(FailedChecks, {
+                Name = Name,
+            })
+
+            if Emergency then
+                GLOBAL.STATE = STATES.EMERGENCY
+            else
+                GLOBAL.STATE = STATES.STOPPED
+            end
+
+            pcall(NETWORK.REACTOR.scram)
 		end
 	end
 
-	return STATE ~= STATES.RUNNING or GLOBAL.DATA.REACTOR.ONLINE;
+    if (#FailedChecks > 0) then
+        return false
+    end
+
+	return GLOBAL.STATE ~= STATES.RUNNING or GLOBAL.DATA.REACTOR.ONLINE;
 end
 
 -- // Update Data
@@ -183,134 +191,115 @@ local function UpdateData()
     };
 end
 
--- Function to mirror the terminal to both the screen and a 2x2 monitor setup
-local function createMirroredTerminal()
-    -- Get the monitor peripheral (assuming it's on the left side)
-    local monitor = peripheral.find("monitor")
+local function UpdateTerminal()
+    function round(number)
+        return math.floor(number + 0.5)
+    end
     
-    if monitor then
-        -- Clear the monitor and set up the text scale
-        monitor.setTextScale(0.5)
-        monitor.clear()
-
-        -- Create a "multishell" to mirror the output to both terminal and monitor
-        local originalTerm = term.current()  -- Store the original terminal (computer's terminal)
-
-        local function redirectToBoth()
-            local object = {}
-
-            function object.write(text)
-                originalTerm.write(text)
-                monitor.write(text)
-            end
-
-            function object.clear()
-                originalTerm.clear()
-                monitor.clear()
-            end
-
-            function object.setCursorPos(x, y)
-                originalTerm.setCursorPos(x, y)
-                monitor.setCursorPos(x, y)
-            end
-
-            function object.getCursorPos()
-                return originalTerm.getCursorPos()
-            end
-
-            function object.setTextColor(color)
-                originalTerm.setTextColor(color)
-                monitor.setTextColor(color)
-            end
-
-            function object.setBackgroundColor(color)
-                originalTerm.setBackgroundColor(color)
-                monitor.setBackgroundColor(color)
-            end
-
-            function object.clearLine()
-                originalTerm.clearLine()
-                monitor.clearLine()
-            end
-
-            function object.scroll(n)
-                originalTerm.scroll(n)
-                monitor.scroll(n)
-            end
-
-            return object
-        end
-
-        -- Redirect output to both the terminal and monitor
-        term.redirect(redirectToBoth())
+    function drawValue(name, value, color, offset)
+        cobalt.graphics.setColor("white")
+        cobalt.graphics.print(name, 2 + offset, 16)
+        cobalt.graphics.rect("line", 1 + offset, 1, 5, 13)
+        cobalt.graphics.setColor(color)
+    
+        local length = round(value * 10);
+        cobalt.graphics.rect("fill", 2 + offset, 13 - length, 2, length)
     end
+    
+    function cobalt.draw()
+        drawValue("Fuel", NETWORK.REACTOR.getFuelFilledPercentage(), "green", 0)
+        drawValue("Waste", NETWORK.REACTOR.getWasteFilledPercentage(), "orange", 7)
+        drawValue("Water", NETWORK.REACTOR.getCoolantFilledPercentage(), "blue", 14)
+        drawValue("Steam", NETWORK.REACTOR.getHeatedCoolantFilledPercentage(), "gray", 21)
+    end
+    
+    cobalt.init();
 end
 
--- Function to draw the main screen on both terminal and monitor
-local function DrawScreen()
-    -- Draws the information to both terminal and monitor
-    term.clear()
-    term.setCursorPos(1, 1)
-
-    if state == STATES.ERROR then
-        colored("ERROR RETRIEVING DATA", colors.red)
-        return
-    end
-
-    -- Display reactor and lever status
-    colored("REACTOR: ")
-    colored(GLOBAL.DATA.REACTOR.ONLINE and "ON " or "OFF", GLOBAL.DATA.REACTOR.ONLINE and colors.green or colors.red)
-    colored("  LEVER: ")
-    colored(GLOBAL.DATA.ON_SIGNAL and "ON " or "OFF", GLOBAL.DATA.ON_SIGNAL and colors.green or colors.red)
-    colored("  R. LIMIT: ")
-    colored(string.format("%4.1f", GLOBAL.DATA.REACTOR.BURN_RATE), colors.blue)
-    colored("/", colors.lightGray)
-    colored(string.format("%4.1f", GLOBAL.DATA.REACTOR.MAX_BURN_RATE), colors.blue)
-
-    term.setCursorPos(1, 3)
-
-    -- Display reactor status
-    colored("STATUS: ")
-    if GLOBAL.STATE == STATES.IDLE or GLOBAL.STATE == STATES.BOOTING then
-        colored("READY, Flip Lever To Start", colors.blue)
-    elseif GLOBAL.STATE == STATES.RUNNING then
-        colored("RUNNING, Flip Lever To Stop", colors.green)
-    elseif GLOBAL.STATE == STATES.EMERGENCY and not AllChecksMet() then
-        colored("EMERGENCY STOP, Safety Check Violated!", colors.red)
-    elseif GLOBAL.STATE == STATES.EMERGENCY then
-        colored("EMERGENCY STOP, Toggle Lever To Reset!", colors.red)
-    end
-end
-
--- Function to update and display the safety rules
-local function DrawRules()
-    term.clear()
-    for Num, Check in ipairs(CHECKS) do
-        local ok, text = Check()
-        term.setCursorPos(1, i + 1)
-        if ok then
-            colored("[  OK  ] ", colors.green)
-            colored(text, colors.lightGray)
-        else
-            colored("[ FAIL ] ", colors.red)
-            colored(text, colors.red)
-        end
-    end
-end
-
--- Main loop to update the screen and rules
 local function UpdateScreen()
-    while true do
-        DrawScreen()
-        DrawRules()
+    
+end
 
-        sleep(1)
+local function LockSystem()
+    print("SYSTEM LOCKED. Enter 'unlock' to unlock the system.")
+    print("It only locks up after an SCRAM, Please double check the reactor before starting it again.")
+    
+    while true do
+        local input = read()
+        if input == "unlock" then
+            GLOBAL.CONFIG.LOCKED = false
+            pcall(NETWORK.REACTOR.scram)
+            GLOBAL.STATE = STATES.STOPPED
+            SaveFile(GLOBAL.CONFIG, "pra/config.json")
+            print("System unlocked.")
+            break
+        else
+            print("Invalid command. System remains locked.")
+        end
     end
 end
 
 -- // Always Active Once Setup Step Is Done
 local function DefaultLoop()
-    UpdateData()
+    if not pcall(UpdateData) then
+        GLOBAL.STATE = STATES.ERROR
+    end
+
+    if GLOBAL.DATA.ON_SIGNAL then
+        pcall(NETWORK.REACTOR.activate)
+
+        GLOBAL.STATE = STATES.RUNNING
+    else
+        pcall(NETWORK.REACTOR.scram)
+
+        GLOBAL.STATE = STATES.STOPPED
+    end
+
+    if GLOBAL.DATA.REACTOR.ONLINE then
+        GLOBAL.STATE = STATES.RUNNING
+    else
+        GLOBAL.STATE = STATES.STOPPED
+    end
+
+    if not GLOBAL.DATA.TURBINE.ENERGY then
+        GLOBAL.STATE = STATES.ERROR
+    end
+
+    if not AllChecksMet() then
+        if GLOBAL.STATE == STATES.RUNNING then
+            GLOBAL.STATE = STATES.STOPPED
+        end
+
+        pcall(NETWORK.REACTOR.scram)
+    end
+
+    if GLOBAL.STATE == STATES.EMERGENCY then
+        GLOBAL.CONFIG.LOCKED = true
+
+        SaveFile(GLOBAL.CONFIG, "pra/config.json")
+
+        redstone.setOutput("right", true)
+    else
+        redstone.setOutput("right", false)
+    end
+
+    if GLOBAL.STATE == STATES.ERROR then
+        print("ERROR. Seems something ain't right, Double check everything then reboot system.")
+    
+        while true do
+            local input = read()
+            print("ERROR. Seems something ain't right, Double check everything then reboot system.")
+        end
+    end
+
+    if GLOBAL.CONFIG.LOCKED then
+        pcall(NETWORK.REACTOR.scram)
+
+        LockSystem()
+    end
+
+    pcall(UpdateTerminal)
+    pcall(UpdateScreen)
 
     sleep()
 
@@ -319,107 +308,56 @@ end
 
 -- // Setup Screen
 local function DoSetup()
-    -- Variables for storing the entered data
-    local currentStep = 1
-    local configSteps = {}
-    local enteredValues = {}
+    shell.run("clear")
+    print("Welcome To The Paid Re-Actor V0.0.1 Setup Wizard.")
+    
+    -- // Ask for Maximum Temperature
+    print("Set The Maximum Temperature For The Reactor (Default: 745):")
+    local maxTemp = tonumber(read())
+    if not maxTemp then maxTemp = 745 end
 
-    -- Default config settings (adjusted during setup)
-    local defaultConfig = {
-        REACTOR = {
-            MAXIMUM_TEMPERATURE = { VALUE = 745, INFO = "Maximum temperature in Kelvin" },
-            MINIMUM_HEALTH = { VALUE = 0.10, INFO = "Minimum reactor health (Percentage)" },
-            MINIMUM_COOLANT = { VALUE = 0.95, INFO = "Minimum coolant level (Percentage)" },
-            MINIMUM_FUEL_LEVEL = { VALUE = 0.10, INFO = "Minimum fuel level (Percentage)" },
-            WASTE_LEVEL_LIMIT = { VALUE = 0.90, INFO = "Maximum waste level (Percentage)" },
-        },
-        TURBINE = {
-            TURBINE_ENERGY_LEVEL_LIMIT = { VALUE = 0.90, INFO = "Maximum turbine energy level (Percentage)" }
-        }
-    }
+    -- // Ask for Minimum Health
+    print("Set The Minimum Health Percentage (Default: 0.10):")
+    local minHealth = tonumber(read())
+    if not minHealth then minHealth = 0.10 end
 
-    -- Function to save config file
-    local function SaveConfig(config)
-        SaveFile(config, "pra/config.json")
-    end
+    -- // Ask for Minimum Coolant Level
+    print("Set The Minimum Coolant Percentage (Default: 0.95):")
+    local minCoolant = tonumber(read())
+    if not minCoolant then minCoolant = 0.95 end
 
-    -- Function to draw the setup screen
-    local function drawSetupScreen()
-        cobalt.graphics.clear()
-        cobalt.graphics.print("Reactor Configuration Setup", 5, 2)
-        
-        -- Display current step information
-        local currentConfigStep = configSteps[currentStep]
-        cobalt.graphics.print(currentConfigStep.INFO, 5, 5)
-        
-        -- Display entered value or prompt for entry
-        local enteredValue = enteredValues[currentConfigStep.key] or ""
-        cobalt.graphics.print("Enter value: " .. enteredValue, 5, 7)
-        
-        -- Navigation hints
-        cobalt.graphics.print("Press * to confirm, # to go back", 5, 9)
-    end
+    -- // Ask for Minimum Fuel Level
+    print("Set The Minimum Fuel Level Percentage (Default: 0.10):")
+    local minFuel = tonumber(read())
+    if not minFuel then minFuel = 0.10 end
 
-    -- Function to handle key input during setup
-    local function handleKeyPress(key)
-        local currentConfigStep = configSteps[currentStep]
-        
-        if key == "*" then
-            -- Confirm the current value and move to the next step
-            if enteredValues[currentConfigStep.key] then
-                defaultConfig[currentConfigStep.category][currentConfigStep.key].VALUE = tonumber(enteredValues[currentConfigStep.key])
-                currentStep = currentStep + 1
-            end
-            
-            -- Check if all steps are completed
-            if currentStep > #configSteps then
-                SaveConfig(defaultConfig)
-                print("Setup complete! Configuration saved.")
+    -- // Ask for Waste Level Limit
+    print("Set The Waste Level Limit Percentage (Default: 0.90):")
+    local wasteLimit = tonumber(read())
+    if not wasteLimit then wasteLimit = 0.90 end
 
-                -- Exit the setup process and continue with the main program
-                return true  -- Exits the setup loop
-            end
-            
-        elseif key == "#" then
-            -- Backspace (remove last character)
-            enteredValues[currentConfigStep.key] = enteredValues[currentConfigStep.key]:sub(1, -2)
-        elseif tonumber(key) then
-            -- Append digit to the entered value
-            enteredValues[currentConfigStep.key] = (enteredValues[currentConfigStep.key] or "") .. key
-        end
-        
-        -- Redraw the screen
-        drawSetupScreen()
-    end
+    -- // Ask for Turbine Energy Level Limit
+    print("Set The Turbine Energy Level Limit Percentage (Default: 0.90):")
+    local turbineLimit = tonumber(read())
+    if not turbineLimit then turbineLimit = 0.90 end
 
-    -- Initialize configuration steps
-    local function initConfigSteps()
-        configSteps = {
-            { category = "REACTOR", key = "MAXIMUM_TEMPERATURE", INFO = "Set maximum reactor temperature (K)" },
-            { category = "REACTOR", key = "MINIMUM_HEALTH", INFO = "Set minimum reactor health (%)" },
-            { category = "REACTOR", key = "MINIMUM_COOLANT", INFO = "Set minimum coolant level (%)" },
-            { category = "REACTOR", key = "MINIMUM_FUEL_LEVEL", INFO = "Set minimum fuel level (%)" },
-            { category = "REACTOR", key = "WASTE_LEVEL_LIMIT", INFO = "Set maximum waste level (%)" },
-            { category = "TURBINE", key = "TURBINE_ENERGY_LEVEL_LIMIT", INFO = "Set maximum turbine energy level (%)" }
-        }
-    end
+    -- // Create and store the configuration
+    GLOBAL.CONFIG.REACTOR.MAXIMUM_TEMPERATURE.VALUE = maxTemp
+    GLOBAL.CONFIG.REACTOR.MINIMUM_HEALTH.VALUE = minHealth
+    GLOBAL.CONFIG.REACTOR.MINIMUM_COOLANT.VALUE = minCoolant
+    GLOBAL.CONFIG.REACTOR.MINIMUM_FUEL_LEVEL.VALUE = minFuel
+    GLOBAL.CONFIG.REACTOR.WASTE_LEVEL_LIMIT.VALUE = wasteLimit
+    GLOBAL.CONFIG.TURBINE.TURBINE_ENERGY_LEVEL_LIMIT.VALUE = turbineLimit
+    
+    GLOBAL.CONFIG.IS_SETUP = true
+    
+    -- // Save configuration
+    SaveFile(GLOBAL.CONFIG, "pra/config.json")
+    print("Setup complete! Configuration saved.")
 
-    -- Start setup
-    initConfigSteps()
+    sleep()
 
-    -- Main loop for handling input
-    while true do
-        cobalt.draw = drawSetupScreen
-        cobalt.keypressed = handleKeyPress
-        cobalt.init()
-
-        -- Exit setup once completed
-        if handleKeyPress("*") == true then
-            break
-        end
-    end
-
-    print("Robooting...")
+    print("Rebooting...")
 
     sleep(3)
 
@@ -428,8 +366,6 @@ end
 
 -- // On Load
 local function Init()
-    local Task = coroutine.create(DefaultLoop)
-
     if not fs.exists("pra/config.json") then
         return DoSetup();
     end
@@ -475,17 +411,17 @@ local function Init()
 	        return not GLOBAL.CONFIG.LOCKED, Text, true
         end)
 
-        sleep(1)
+        sleep()
+
+        print("Starting...")
+
+        sleep(3)
+
+        local Task = coroutine.create(DefaultLoop)
+
+        shell.run("clear")
 
         coroutine.resume(Task)
-
-        -- Initialize the mirrored terminal
-        createMirroredTerminal()
-
-        -- Start the main loop
-        parallel.waitForAny(UpdateScreen, function()
-            os.pullEventRaw("terminate")
-        end)
     else
         DoSetup()
     end
