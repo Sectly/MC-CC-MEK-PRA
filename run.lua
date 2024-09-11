@@ -504,9 +504,21 @@ function MirrorToMonitor(monitor)
     term.redirect(mirroredTerm)
 end
 
+local function MonitorSay(message)
+    local oldTerm = term.current()
+
+    term.redirect(peripheral.wrap("left"))
+
+    print(message)
+
+    term.redirect(oldTerm)
+end
+
 -- // On Load
 local function Init()
     if not fs.exists("pra/config.json") then
+        MonitorSay("Check Computer!")
+        
         return DoSetup();
     end
 
@@ -514,6 +526,9 @@ local function Init()
 
     if ConfigFile and ConfigFile ~= nil and ConfigFile.IS_SETUP then
         GLOBAL.CONFIG = ConfigFile or GLOBAL.CONFIG;
+
+        local monitor = peripheral.wrap("right")
+        MirrorToMonitor(monitor)
 
         print("Config Valid, Adding Checks...")
 
@@ -554,6 +569,7 @@ local function Init()
         sleep()
 
         print("Starting...")
+        MonitorSay("Starting...")
 
         sleep(3)
 
@@ -564,14 +580,14 @@ local function Init()
 
         DefaultLoop();
     else
+        MonitorSay("Check Computer!")
+
         DoSetup()
     end
 end
 
-local monitor = peripheral.wrap("right")
-MirrorToMonitor(monitor)
-
 shell.run("clear")
 textutils.slowPrint("Booting...")
+MonitorSay("Booting...")
 
 Init();
