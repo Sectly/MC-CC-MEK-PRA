@@ -2,8 +2,6 @@
 -- // Author: Sectly (https://github.com/Sectly)
 -- // Paid Re-Actor, An ComputerCraft Program That Gives You An Easy To Read And Use GUI To Control And Monitor An Mekanism Fission Reactor
 
-local basalt = require("/basalt")
-
 local NETWORK = {
 	REACTOR = peripheral.find("fissionReactorLogicAdapter"),
 	TURBINE = peripheral.find("turbineValve"),
@@ -81,82 +79,6 @@ local STATES = {
 	EMERGENCY = 3,
 	ERROR = 4,
 }
-
--- // GUI
-
--- Main UI frame
-local mainFrame = basalt.createFrame()
-
--- Header: Reactor State
-local reactorStateLabel = mainFrame
-	:addLabel()
-	:setText("Reactor Status: ")
-	:setPosition(2, 2)
-	:setSize(30, 1)
-	:setBackground(colors.gray)
-	:setForeground(colors.white)
-
--- Error/Warn section
-local errorLabel = mainFrame
-	:addLabel()
-	:setText("")
-	:setPosition(2, 4)
-	:setSize(30, 1)
-	:setBackground(colors.red)
-	:setForeground(colors.white)
-	:hide()
-
--- Reactor Data Section
-mainFrame:addLabel():setText("Reactor Temperature:"):setPosition(2, 6):setSize(18, 1)
-local tempProgressBar =
-	mainFrame:addProgressbar():setPosition(22, 6):setSize(20, 1):setBackground(colors.gray):setForeground(colors.red)
-
-mainFrame:addLabel():setText("Coolant Level:"):setPosition(2, 8):setSize(18, 1)
-local coolantProgressBar =
-	mainFrame:addProgressbar():setPosition(22, 8):setSize(20, 1):setBackground(colors.gray):setForeground(colors.blue)
-
-mainFrame:addLabel():setText("Fuel Level:"):setPosition(2, 10):setSize(18, 1)
-local fuelProgressBar =
-	mainFrame:addProgressbar():setPosition(22, 10):setSize(20, 1):setBackground(colors.gray):setForeground(colors.green)
-
-mainFrame:addLabel():setText("Waste Level:"):setPosition(2, 12):setSize(18, 1)
-local wasteProgressBar =
-	mainFrame:addProgressbar():setPosition(22, 12):setSize(20, 1):setBackground(colors.gray):setForeground(colors.red)
-
-mainFrame:addLabel():setText("Turbine Energy:"):setPosition(2, 14):setSize(18, 1)
-local turbineProgressBar = mainFrame
-	:addProgressbar()
-	:setPosition(22, 14)
-	:setSize(20, 1)
-	:setBackground(colors.gray)
-	:setForeground(colors.yellow)
-
--- Control Buttons
-mainFrame
-	:addButton()
-	:setText("Start Reactor")
-	:setPosition(2, 16)
-	:setSize(12, 3)
-	:setBackground(colors.green)
-	:onClick(function()
-		if not GLOBAL.CONFIG.LOCKED then
-			pcall(NETWORK.REACTOR.activate)
-			GLOBAL.STATE = STATES.RUNNING
-		else
-			print("System is locked!")
-		end
-	end)
-
-mainFrame
-	:addButton()
-	:setText("Stop Reactor")
-	:setPosition(20, 16)
-	:setSize(12, 3)
-	:setBackground(colors.red)
-	:onClick(function()
-		pcall(NETWORK.REACTOR.scram)
-		GLOBAL.STATE = STATES.STOPPED
-	end)
 
 -- // List Of Checks
 local CHECKS = {}
@@ -267,53 +189,100 @@ local function UpdateData()
 	}
 end
 
+-- Helper function to draw progress bars
+local function drawProgressBar(x, y, width, percentage, color, background)
+    local filledWidth = math.floor((percentage / 100) * width)
+    term.setCursorPos(x, y)
+    term.setBackgroundColor(color)
+    term.write(string.rep(" ", filledWidth))
+
+    term.setBackgroundColor(background)
+    term.write(string.rep(" ", width - filledWidth))
+end
+
+-- Function to display reactor status
+local function drawReactorStatus(state, locked)
+    term.setCursorPos(2, 2)
+    term.setBackgroundColor(colors.gray)
+    term.setTextColor(colors.white)
+    term.clearLine()
+
+    if state == STATES.RUNNING then
+        term.setTextColor(colors.green)
+        term.write("Reactor Status: ONLINE")
+    elseif state == STATES.EMERGENCY then
+        term.setTextColor(colors.red)
+        term.write("Reactor Status: SCRAM (Emergency)")
+    elseif state == STATES.ERROR then
+        term.setTextColor(colors.red)
+        term.write("Reactor Status: ERROR")
+    elseif state == STATES.BOOTING then
+        term.setTextColor(colors.red)
+        term.write("Reactor Status: BOOTING")
+    elseif locked then
+        term.setTextColor(colors.red)
+        term.write("Reactor Status: LOCKED")
+    elseif GLOBAL.CONFIG.IS_SETUP == false then
+        term.setTextColor(colors.orange)
+        term.write("Reactor Status: SETUP REQUIRED")
+    else
+        term.setTextColor(colors.red)
+        term.write("Reactor Status: OFFLINE")
+    end
+end
+
+-- Function to display reactor data
+local function drawReactorData(data)
+    -- Temperature
+    term.setCursorPos(2, 4)
+    term.setBackgroundColor(colors.black)
+    term.setTextColor(colors.white)
+    term.write("Temperature: ")
+    drawProgressBar(20, 4, 20, (data.REACTOR.TEMPERATURE / GLOBAL.CONFIG.REACTOR.MAXIMUM_TEMPERATURE.VALUE) * 100, colors.red, colors.gray)
+
+    -- Coolant Level
+    term.setCursorPos(2, 6)
+    term.write("Coolant Level: ")
+    drawProgressBar(20, 6, 20, data.REACTOR.COOLANT * 100, colors.blue, colors.gray)
+
+    -- Fuel Level
+    term.setCursorPos(2, 8)
+    term.write("Fuel Level: ")
+    drawProgressBar(20, 8, 20, data.REACTOR.FUEL_LEVEL * 100, colors.green, colors.gray)
+
+    -- Waste Level
+    term.setCursorPos(2, 10)
+    term.write("Waste Level: ")
+    drawProgressBar(20, 10, 20, data.REACTOR.WASTE * 100, colors.red, colors.gray)
+
+    -- Turbine Energy Level
+    term.setCursorPos(2, 12)
+    term.write("Turbine Energy: ")
+    drawProgressBar(20, 12, 20, data.TURBINE.ENERGY * 100, colors.yellow, colors.gray)
+end
+
+-- Function to display errors/warnings
+local function drawErrors(failedChecks)
+    if #failedChecks > 0 then
+        term.setCursorPos(2, 14)
+        term.setBackgroundColor(colors.red)
+        term.setTextColor(colors.white)
+        term.clearLine()
+        term.write("ERROR: Reactor Condition Violation")
+    else
+        term.setCursorPos(2, 14)
+        term.clearLine()
+    end
+end
+
 local function UpdateScreen()
-	-- Update reactor status
-	local stateText = "OFFLINE"
-	local stateColor = colors.red
+    local data = GLOBAL.DATA
+    local failedChecks = FailedChecks or {}
 
-	if GLOBAL.CONFIG.IS_SETUP == false then
-		stateText = "SETUP REQUIRED"
-		stateColor = colors.orange
-	elseif GLOBAL.CONFIG.LOCKED then
-		stateText = "LOCKED"
-		stateColor = colors.red
-	elseif GLOBAL.STATE == STATES.EMERGENCY then
-		stateText = "SCRAM (Emergency)"
-		stateColor = colors.red
-	elseif GLOBAL.STATE == STATES.RUNNING then
-		stateText = "ONLINE"
-		stateColor = colors.green
-	elseif GLOBAL.STATE == STATES.STOPPED then
-		stateText = "STOPPED"
-		stateColor = colors.gray
-	elseif GLOBAL.STATE == STATES.BOOTING then
-		stateText = "BOOTING"
-		stateColor = colors.yellow
-	elseif GLOBAL.STATE == STATES.ERROR then
-		stateText = "ERROR"
-		stateColor = colors.yellow
-	end
-
-	reactorStateLabel:setText("Reactor Status: " .. stateText)
-	reactorStateLabel:setBackground(stateColor)
-
-	-- Hide or show error label
-	if GLOBAL.STATE == STATES.ERROR or #FailedChecks > 0 then
-		errorLabel:setText("ERROR: Reactor Condition Violation")
-		errorLabel:show()
-	else
-		errorLabel:hide()
-	end
-
-	-- Update progress bars with reactor data
-	tempProgressBar:setProgress(
-		math.floor((GLOBAL.DATA.REACTOR.TEMPERATURE / GLOBAL.CONFIG.REACTOR.MAXIMUM_TEMPERATURE.VALUE) * 100)
-	)
-	coolantProgressBar:setProgress(math.floor(GLOBAL.DATA.REACTOR.COOLANT * 100))
-	fuelProgressBar:setProgress(math.floor(GLOBAL.DATA.REACTOR.FUEL_LEVEL * 100))
-	wasteProgressBar:setProgress(math.floor(GLOBAL.DATA.REACTOR.WASTE * 100))
-	turbineProgressBar:setProgress(math.floor(GLOBAL.DATA.TURBINE.ENERGY * 100))
+    term.clear()
+    drawReactorStatus(GLOBAL.STATE, GLOBAL.CONFIG.LOCKED)
+    drawReactorData(data)
+    drawErrors(failedChecks)
 end
 
 local function LockSystem()
