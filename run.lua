@@ -191,82 +191,121 @@ end
 
 -- Function to display reactor status
 local function drawReactorStatus(state, locked)
-    term.setCursorPos(2, 2)
-    term.setBackgroundColor(colors.gray)
-    term.setTextColor(colors.white)
-    term.clearLine()
+	term.setCursorPos(2, 2)
+	term.setBackgroundColor(colors.gray)
+	term.setTextColor(colors.white)
+	term.clearLine()
 
-    if state == STATES.RUNNING then
-        term.setTextColor(colors.green)
-        term.write("Reactor Status: ONLINE")
-    elseif state == STATES.EMERGENCY then
-        term.setTextColor(colors.red)
-        term.write("Reactor Status: SCRAM (Emergency)")
-    elseif state == STATES.ERROR then
-        term.setTextColor(colors.red)
-        term.write("Reactor Status: ERROR")
-    elseif state == STATES.BOOTING then
-        term.setTextColor(colors.red)
-        term.write("Reactor Status: BOOTING")
-    elseif locked then
-        term.setTextColor(colors.red)
-        term.write("Reactor Status: LOCKED")
-    elseif GLOBAL.CONFIG.IS_SETUP == false then
-        term.setTextColor(colors.orange)
-        term.write("Reactor Status: SETUP REQUIRED")
-    else
-        term.setTextColor(colors.red)
-        term.write("Reactor Status: OFFLINE")
-    end
+	if state == STATES.RUNNING then
+		term.setTextColor(colors.green)
+		term.write("Reactor Status: ONLINE")
+	elseif state == STATES.EMERGENCY then
+		term.setTextColor(colors.red)
+		term.write("Reactor Status: SCRAM (Emergency)")
+	elseif state == STATES.ERROR then
+		term.setTextColor(colors.red)
+		term.write("Reactor Status: ERROR")
+	elseif state == STATES.BOOTING then
+		term.setTextColor(colors.red)
+		term.write("Reactor Status: BOOTING")
+	elseif locked then
+		term.setTextColor(colors.red)
+		term.write("Reactor Status: LOCKED")
+	elseif GLOBAL.CONFIG.IS_SETUP == false then
+		term.setTextColor(colors.orange)
+		term.write("Reactor Status: SETUP REQUIRED")
+	else
+		term.setTextColor(colors.red)
+		term.write("Reactor Status: OFFLINE")
+	end
+end
+
+-- Helper function to check if a specific violation exists in FailedChecks
+local function isViolated(checkName)
+	for _, check in ipairs(FailedChecks) do
+		if check.Name == checkName then
+			return true
+		end
+	end
+	return false
 end
 
 -- Function to display reactor data
 local function drawReactorData(data)
-    -- Temperature
-    term.setCursorPos(2, 4)
-    term.setBackgroundColor(colors.black)
-    term.setTextColor(colors.white)
-    term.write("Temperature: " .. math.floor(data.REACTOR.TEMPERATURE) .. "K")
+	-- Temperature
+	term.setCursorPos(2, 4)
+	term.setBackgroundColor(colors.black)
+	term.setTextColor(colors.white)
+	term.write("Temperature: " .. math.floor(data.REACTOR.TEMPERATURE) .. "K")
 
-    -- Coolant Level
-    term.setCursorPos(2, 6)
-    term.write("Coolant Level: " .. math.floor(data.REACTOR.COOLANT * 100) .. "%")
+	if isViolated("REACTOR TEMPERATURE") then
+		term.setTextColor(colors.red)
+		term.write(" (Violated)")
+	end
 
-    -- Fuel Level
-    term.setCursorPos(2, 8)
-    term.write("Fuel Level: " .. math.floor(data.REACTOR.FUEL_LEVEL * 100) .. "%")
+	-- Coolant Level
+	term.setCursorPos(2, 6)
+	term.setTextColor(colors.white)
+	term.write("Coolant Level: " .. math.floor(data.REACTOR.COOLANT * 100) .. "%")
 
-    -- Waste Level
-    term.setCursorPos(2, 10)
-    term.write("Waste Level: " .. math.floor(data.REACTOR.WASTE * 100) .. "%")
+	if isViolated("REACTOR COOLANT LEVEL") then
+		term.setTextColor(colors.red)
+		term.write(" (Violated)")
+	end
 
-    -- Turbine Energy Level
-    term.setCursorPos(2, 12)
-    term.write("Turbine Energy: " .. math.floor(data.TURBINE.ENERGY * 100) .. "%")
+	-- Fuel Level
+	term.setCursorPos(2, 8)
+	term.setTextColor(colors.white)
+	term.write("Fuel Level: " .. math.floor(data.REACTOR.FUEL_LEVEL * 100) .. "%")
+
+	if isViolated("REACTOR FUEL LEVEL") then
+		term.setTextColor(colors.red)
+		term.write(" (Violated)")
+	end
+
+	-- Waste Level
+	term.setCursorPos(2, 10)
+	term.setTextColor(colors.white)
+	term.write("Waste Level: " .. math.floor(data.REACTOR.WASTE * 100) .. "%")
+
+	if isViolated("REACTOR WASTE LEVEL") then
+		term.setTextColor(colors.red)
+		term.write(" (Violated)")
+	end
+
+	-- Turbine Energy Level
+	term.setCursorPos(2, 12)
+	term.setTextColor(colors.white)
+	term.write("Turbine Energy: " .. math.floor(data.TURBINE.ENERGY * 100) .. "%")
+
+	if isViolated("TURBINE ENERGY LEVEL") then
+		term.setTextColor(colors.red)
+		term.write(" (Violated)")
+	end
 end
 
 -- Function to display errors/warnings
 local function drawErrors(failedChecks)
-    if #failedChecks > 0 then
-        term.setCursorPos(2, 14)
-        term.setBackgroundColor(colors.red)
-        term.setTextColor(colors.white)
-        term.clearLine()
-        term.write("ERROR: Reactor Condition Violation")
-    else
-        term.setCursorPos(2, 14)
-        term.clearLine()
-    end
+	if #failedChecks > 0 then
+		term.setCursorPos(2, 14)
+		term.setBackgroundColor(colors.red)
+		term.setTextColor(colors.white)
+		term.clearLine()
+		term.write("ERROR: Reactor Condition Violation")
+	else
+		term.setCursorPos(2, 14)
+		term.clearLine()
+	end
 end
 
 local function UpdateScreen()
-    local data = GLOBAL.DATA
-    local failedChecks = FailedChecks or {}
+	local data = GLOBAL.DATA
+	local failedChecks = FailedChecks or {}
 
-    term.clear()
-    drawReactorStatus(GLOBAL.STATE, GLOBAL.CONFIG.LOCKED)
-    drawReactorData(data)
-    drawErrors(failedChecks)
+	term.clear()
+	drawReactorStatus(GLOBAL.STATE, GLOBAL.CONFIG.LOCKED)
+	drawReactorData(data)
+	drawErrors(failedChecks)
 end
 
 local function LockSystem()
@@ -341,7 +380,7 @@ local function DefaultLoop()
 		end
 	end
 
-    pcall(UpdateScreen)
+	pcall(UpdateScreen)
 
 	if GLOBAL.CONFIG.LOCKED then
 		pcall(NETWORK.REACTOR.scram)
@@ -553,7 +592,7 @@ local function Init()
 		pcall(NETWORK.REACTOR.scram)
 		GLOBAL.STATE = STATES.STOPPED
 
-        DefaultLoop()
+		DefaultLoop()
 	else
 		DoSetup()
 	end
