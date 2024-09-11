@@ -569,11 +569,9 @@ local function Init()
 		pcall(NETWORK.REACTOR.scram)
 		GLOBAL.STATE = STATES.STOPPED
 
-        local Task = coroutine.create(DefaultLoop)
-
-        return coroutine.resume(Task)
+        DefaultLoop()
 	else
-		return DoSetup()
+		DoSetup()
 	end
 end
 
