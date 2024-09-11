@@ -216,8 +216,89 @@ local function UpdateTerminal()
     cobalt.init();
 end
 
+local function colored(text, fg, bg)
+	term.setTextColor(fg or colors.white)
+	term.setBackgroundColor(bg or colors.black)
+	term.write(text)
+end
+
+local function CreateSection(name, x, y, w, h)
+	for row = 1, h do
+		term.setCursorPos(x, y + row - 1)
+		local char = (row == 1 or row == h) and "\127" or " "
+		colored("\127" .. string.rep(char, w - 2) .. "\127", colors.gray)
+	end
+
+	term.setCursorPos(x + 2, y)
+	colored(" " .. name .. " ")
+
+	return window.create(term.current(), x + 2, y + 2, w - 4, h - 4)
+end
+
+local WINDOWS = {
+    INFO = CreateSection("INFORMATION", 2, 2, term.getSize() - 2, 7),
+    CHECKS = CreateSection("SAFETY RULES", 2, 10, term.getSize() - 2, 10),
+}
+
 local function UpdateScreen()
-    
+    local prev_term = term.redirect(WINDOWS.INFO)
+
+	term.clear()
+	term.setCursorPos(1, 1)
+
+	if state == STATES.UNKNOWN then
+		colored("ERROR RETRIEVING DATA", colors.red)
+		return
+	end
+
+	colored("REACTOR: ")
+	colored(GLOBAL.DATA.REACTOR.ONLINE and "ON " or "OFF", GLOBAL.DATA.REACTOR.ONLINE and colors.green or colors.red)
+	colored("  STATUS: ")
+	colored(GLOBAL.DATA.ON_SIGNAL and "ON " or "OFF", GLOBAL.DATA.ON_SIGNAL and colors.green or colors.red)
+	colored("  R. LIMIT: ")
+	colored(string.format("%4.1f", GLOBAL.DATA.REACTOR.BURN_RATE), colors.blue)
+	colored("/", colors.lightGray)
+	colored(string.format("%4.1f", GLOBAL.DATA.REACTOR.MAX_BURN_RATE), colors.blue)
+
+	term.setCursorPos(1, 3)
+
+	colored("STATUS: ")
+	if GLOBAL.STATE == STATES.BOOTING or STATE == STATES.STOPPED then
+		colored("READY, Lets Rock & Roll!", colors.blue)
+	elseif GLOBAL.STATE == STATES.RUNNING then
+		colored("RUNNING, All Good!", colors.green)
+	elseif GLOBAL.STATE == STATES.EMERGENCY and not AllChecksMet then
+		colored("EMERGENCY STOP, Safety Check Violated!", colors.red)
+	elseif GLOBAL.STATE == STATES.EMERGENCY then
+		colored("EMERGENCY STOP, Reset Required!", colors.red)
+	end
+
+	term.redirect(prev_term)
+
+    local prev_term = term.redirect(WINDOWS.CHECKS)
+
+	term.clear()
+
+    local emergency_reasons = {}
+
+	if GLOBAL.STATE ~= STATES.EMERGENCY then
+		emergency_reasons = {}
+	end
+
+	for i, check in ipairs(CHECKS) do
+		local ok, text = check()
+		term.setCursorPos(1, i)
+		if ok and not emergency_reasons[i] then
+			colored("[  ✓  ] ", colors.green)
+			colored(text, colors.lightGray)
+		else
+			colored("[ ❌ ] ", colors.red)
+			colored(text, colors.red)
+			emergency_reasons[i] = true
+		end
+	end
+
+	term.redirect(prev_term)
 end
 
 local function LockSystem()
@@ -310,31 +391,43 @@ end
 local function DoSetup()
     shell.run("clear")
     print("Welcome To The Paid Re-Actor V0.0.1 Setup Wizard.")
-    
+
+    print("")
+
     -- // Ask for Maximum Temperature
     print("Set The Maximum Temperature For The Reactor (Default: 745):")
     local maxTemp = tonumber(read())
     if not maxTemp then maxTemp = 745 end
+
+    print("")
 
     -- // Ask for Minimum Health
     print("Set The Minimum Health Percentage (Default: 0.10):")
     local minHealth = tonumber(read())
     if not minHealth then minHealth = 0.10 end
 
+    print("")
+
     -- // Ask for Minimum Coolant Level
     print("Set The Minimum Coolant Percentage (Default: 0.95):")
     local minCoolant = tonumber(read())
     if not minCoolant then minCoolant = 0.95 end
+
+    print("")
 
     -- // Ask for Minimum Fuel Level
     print("Set The Minimum Fuel Level Percentage (Default: 0.10):")
     local minFuel = tonumber(read())
     if not minFuel then minFuel = 0.10 end
 
+    print("")
+
     -- // Ask for Waste Level Limit
     print("Set The Waste Level Limit Percentage (Default: 0.90):")
     local wasteLimit = tonumber(read())
     if not wasteLimit then wasteLimit = 0.90 end
+
+    print("")
 
     -- // Ask for Turbine Energy Level Limit
     print("Set The Turbine Energy Level Limit Percentage (Default: 0.90):")
@@ -353,6 +446,7 @@ local function DoSetup()
     
     -- // Save configuration
     SaveFile(GLOBAL.CONFIG, "pra/config.json")
+    print("")
     print("Setup complete! Configuration saved.")
 
     sleep()
@@ -417,11 +511,9 @@ local function Init()
 
         sleep(3)
 
-        local Task = coroutine.create(DefaultLoop)
-
         shell.run("clear")
 
-        coroutine.resume(Task)
+        DefaultLoop();
     else
         DoSetup()
     end
