@@ -239,7 +239,7 @@ local function drawReactorData(data)
 	term.write("Temperature: " .. math.floor(data.REACTOR.TEMPERATURE) .. "K")
 
 	if isViolated("REACTOR TEMPERATURE") then
-		term.setTextColor(colors.red)
+		term.setTextColor(colors.yellow)
 		term.write(" (Violated)")
 	end
 
@@ -249,7 +249,7 @@ local function drawReactorData(data)
 	term.write("Coolant Level: " .. math.floor(data.REACTOR.COOLANT * 100) .. "%")
 
 	if isViolated("REACTOR COOLANT LEVEL") then
-		term.setTextColor(colors.red)
+		term.setTextColor(colors.yellow)
 		term.write(" (Violated)")
 	end
 
@@ -259,7 +259,7 @@ local function drawReactorData(data)
 	term.write("Fuel Level: " .. math.floor(data.REACTOR.FUEL_LEVEL * 100) .. "%")
 
 	if isViolated("REACTOR FUEL LEVEL") then
-		term.setTextColor(colors.red)
+		term.setTextColor(colors.yellow)
 		term.write(" (Violated)")
 	end
 
@@ -269,7 +269,7 @@ local function drawReactorData(data)
 	term.write("Waste Level: " .. math.floor(data.REACTOR.WASTE * 100) .. "%")
 
 	if isViolated("REACTOR WASTE LEVEL") then
-		term.setTextColor(colors.red)
+		term.setTextColor(colors.yellow)
 		term.write(" (Violated)")
 	end
 
@@ -279,7 +279,7 @@ local function drawReactorData(data)
 	term.write("Turbine Energy: " .. math.floor(data.TURBINE.ENERGY * 100) .. "%")
 
 	if isViolated("TURBINE ENERGY LEVEL") then
-		term.setTextColor(colors.red)
+		term.setTextColor(colors.yellow)
 		term.write(" (Violated)")
 	end
 end
@@ -602,6 +602,8 @@ local monitor = peripheral.wrap("right")
 MirrorToMonitor(monitor)
 
 shell.run("clear")
+term.setBackgroundColor(colors.black)
+term.setTextColor(colors.green)
 textutils.slowPrint("Booting...")
 
 Init()
