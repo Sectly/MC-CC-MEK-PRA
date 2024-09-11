@@ -600,6 +600,8 @@ local function Init()
 		pcall(NETWORK.REACTOR.scram)
 		GLOBAL.STATE = STATES.STOPPED
 
+        basalt.autoUpdate()
+
 		DefaultLoop()
 	else
 		DoSetup()
