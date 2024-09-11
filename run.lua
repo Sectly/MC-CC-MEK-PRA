@@ -4,6 +4,11 @@
 
 local Cobalt = dofile("/cobalt/init.lua")
 
+local NETWORK = {
+    REACTOR = peripheral.find("fissionReactorLogicAdapter"),
+    TURBINE = peripheral.find("turbineValve"),
+}
+
 local GLOBAL = {
     STATE = -1; -- // Current State
 
@@ -11,18 +16,18 @@ local GLOBAL = {
         ON_SIGNAL = redstone.getInput("top"),
 
 		REACTOR = {
-            ONLINE = reactor.getStatus(),
-            BURN_RATE = reactor.getBurnRate(),
-            MAX_BURN_RATE = reactor.getMaxBurnRate(),
-            TEMPERATURE = reactor.getTemperature(),
-            DAMAGE = reactor.getDamagePercent(),
-            COOLANT = reactor.getCoolantFilledPercentage(),
-            WASTE = reactor.getWasteFilledPercentage(),
-            FUEL_LEVEL = reactor.getFuelFilledPercentage(),
+            ONLINE = NETWORK.REACTOR.getStatus(),
+            BURN_RATE = NETWORK.REACTOR.getBurnRate(),
+            MAX_BURN_RATE = NETWORK.REACTOR.getMaxBurnRate(),
+            TEMPERATURE = NETWORK.REACTOR.getTemperature(),
+            DAMAGE = NETWORK.REACTOR.getDamagePercent(),
+            COOLANT = NETWORK.REACTOR.getCoolantFilledPercentage(),
+            WASTE = NETWORK.REACTOR.getWasteFilledPercentage(),
+            FUEL_LEVEL = NETWORK.REACTOR.getFuelFilledPercentage(),
         };
 
         TURBINE = {
-            ENERGY = turbine.getEnergyFilledPercentage(),
+            ENERGY = NETWORK.TURBINE.getEnergyFilledPercentage(),
         }
     };
 
@@ -162,18 +167,18 @@ local function UpdateData()
         ON_SIGNAL = redstone.getInput("top"),
 
         REACTOR = {
-            ONLINE = reactor.getStatus(),
-            BURN_RATE = reactor.getBurnRate(),
-            MAX_BURN_RATE = reactor.getMaxBurnRate(),
-            TEMPERATURE = reactor.getTemperature(),
-            DAMAGE = reactor.getDamagePercent(),
-            COOLANT = reactor.getCoolantFilledPercentage(),
-            WASTE = reactor.getWasteFilledPercentage(),
-            FUEL_LEVEL = reactor.getFuelFilledPercentage(),
+            ONLINE = NETWORK.REACTOR.getStatus(),
+            BURN_RATE = NETWORK.REACTOR.getBurnRate(),
+            MAX_BURN_RATE = NETWORK.REACTOR.getMaxBurnRate(),
+            TEMPERATURE = NETWORK.REACTOR.getTemperature(),
+            DAMAGE = NETWORK.REACTOR.getDamagePercent(),
+            COOLANT = NETWORK.REACTOR.getCoolantFilledPercentage(),
+            WASTE = NETWORK.REACTOR.getWasteFilledPercentage(),
+            FUEL_LEVEL = NETWORK.REACTOR.getFuelFilledPercentage(),
         };
 
         TURBINE = {
-            ENERGY = turbine.getEnergyFilledPercentage(),
+            ENERGY = NETWORK.TURBINE.getEnergyFilledPercentage(),
         }
     };
 end
