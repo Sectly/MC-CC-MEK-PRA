@@ -411,7 +411,7 @@ local function DoSetup()
     while true do
         cobalt.draw = drawSetupScreen
         cobalt.keypressed = handleKeyPress
-        cobalt.initLoop()
+        cobalt.init()
 
         -- Exit setup once completed
         if handleKeyPress("*") == true then
@@ -429,6 +429,11 @@ end
 -- // On Load
 local function Init()
     local Task = coroutine.create(DefaultLoop)
+
+    if not fs.exists("pra/config.json") then
+        return DoSetup();
+    end
+
     local ConfigFile = ReadFile("pra/config.json")
 
     if ConfigFile and ConfigFile ~= nil and ConfigFile.IS_SETUP then
