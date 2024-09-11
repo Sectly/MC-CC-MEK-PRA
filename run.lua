@@ -506,8 +506,9 @@ end
 
 local function MonitorSay(message)
     local oldTerm = term.current()
+    local monitor = peripheral.wrap("left")
 
-    term.redirect(peripheral.wrap("left"))
+    term.redirect(monitor)
 
     print(message)
 
@@ -518,7 +519,7 @@ end
 local function Init()
     if not fs.exists("pra/config.json") then
         MonitorSay("Check Computer!")
-        
+
         return DoSetup();
     end
 
