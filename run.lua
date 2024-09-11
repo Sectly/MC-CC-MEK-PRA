@@ -2,7 +2,7 @@
 -- // Author: Sectly (https://github.com/Sectly)
 -- // Paid Re-Actor, An ComputerCraft Program That Gives You An Easy To Read And Use GUI To Control And Monitor An Mekanism Fission Reactor
 
-local basalt = require("basalt")
+local basalt = require("/basalt")
 
 local NETWORK = {
 	REACTOR = peripheral.find("fissionReactorLogicAdapter"),

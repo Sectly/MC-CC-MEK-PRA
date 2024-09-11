@@ -15,7 +15,7 @@ shell.run("wget run https://basalt.madefor.cc/install.lua") -- release basalt-1.
 
 shell.run("clear")
 textutils.slowPrint("Downloaded Paid Re-Actor to /pra")
-textutils.slowPrint("Downloaded basalt file to cobalt/lua")
+textutils.slowPrint("Downloaded basalt file to basalt.lua")
 textutils.slowPrint("Creating startup file...")
 
 local file = fs.open("/startup.lua", "w")
