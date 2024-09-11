@@ -109,23 +109,23 @@ local errorLabel = mainFrame
 -- Reactor Data Section
 mainFrame:addLabel():setText("Reactor Temperature:"):setPosition(2, 6):setSize(18, 1)
 local tempProgressBar =
-	mainFrame:addProgressBar():setPosition(22, 6):setSize(20, 1):setBackground(colors.gray):setForeground(colors.red)
+	mainFrame:addProgressbar():setPosition(22, 6):setSize(20, 1):setBackground(colors.gray):setForeground(colors.red)
 
 mainFrame:addLabel():setText("Coolant Level:"):setPosition(2, 8):setSize(18, 1)
 local coolantProgressBar =
-	mainFrame:addProgressBar():setPosition(22, 8):setSize(20, 1):setBackground(colors.gray):setForeground(colors.blue)
+	mainFrame:addProgressbar():setPosition(22, 8):setSize(20, 1):setBackground(colors.gray):setForeground(colors.blue)
 
 mainFrame:addLabel():setText("Fuel Level:"):setPosition(2, 10):setSize(18, 1)
 local fuelProgressBar =
-	mainFrame:addProgressBar():setPosition(22, 10):setSize(20, 1):setBackground(colors.gray):setForeground(colors.green)
+	mainFrame:addProgressbar():setPosition(22, 10):setSize(20, 1):setBackground(colors.gray):setForeground(colors.green)
 
 mainFrame:addLabel():setText("Waste Level:"):setPosition(2, 12):setSize(18, 1)
 local wasteProgressBar =
-	mainFrame:addProgressBar():setPosition(22, 12):setSize(20, 1):setBackground(colors.gray):setForeground(colors.red)
+	mainFrame:addProgressbar():setPosition(22, 12):setSize(20, 1):setBackground(colors.gray):setForeground(colors.red)
 
 mainFrame:addLabel():setText("Turbine Energy:"):setPosition(2, 14):setSize(18, 1)
 local turbineProgressBar = mainFrame
-	:addProgressBar()
+	:addProgressbar()
 	:setPosition(22, 14)
 	:setSize(20, 1)
 	:setBackground(colors.gray)
@@ -284,13 +284,13 @@ local function UpdateScreen()
 	elseif GLOBAL.STATE == STATES.RUNNING then
 		stateText = "ONLINE"
 		stateColor = colors.green
-    elseif GLOBAL.STATE == STATES.STOPPED then
+	elseif GLOBAL.STATE == STATES.STOPPED then
 		stateText = "STOPPED"
 		stateColor = colors.gray
-    elseif GLOBAL.STATE == STATES.BOOTING then
+	elseif GLOBAL.STATE == STATES.BOOTING then
 		stateText = "BOOTING"
 		stateColor = colors.yellow
-    elseif GLOBAL.STATE == STATES.ERROR then
+	elseif GLOBAL.STATE == STATES.ERROR then
 		stateText = "ERROR"
 		stateColor = colors.yellow
 	end
