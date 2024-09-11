@@ -359,9 +359,9 @@ local function DefaultLoop()
 
         SaveFile(GLOBAL.CONFIG, "pra/config.json")
 
-        redstone.setOutput("right", true)
+        redstone.setOutput("left", true)
     else
-        redstone.setOutput("right", false)
+        redstone.setOutput("left", false)
     end
 
     if GLOBAL.STATE == STATES.ERROR then
@@ -448,6 +448,62 @@ local function DoSetup()
     os.reboot()
 end
 
+-- // Mirror Output
+function MirrorToMonitor(monitor)
+    local originalTerm = term.current() -- Store the original terminal
+
+    local mirroredTerm = {}
+    
+    -- Copy all terminal functions (write, setCursorPos, etc.)
+    for key, func in pairs(originalTerm) do
+        mirroredTerm[key] = func
+    end
+
+    -- Override write to send to both terminal and monitor
+    mirroredTerm.write = function(text)
+        originalTerm.write(text)
+        monitor.write(text)
+    end
+
+    mirroredTerm.blit = function(text, textColor, backgroundColor)
+        originalTerm.blit(text, textColor, backgroundColor)
+        monitor.blit(text, textColor, backgroundColor)
+    end
+
+    mirroredTerm.clear = function()
+        originalTerm.clear()
+        monitor.clear()
+    end
+
+    mirroredTerm.setCursorPos = function(x, y)
+        originalTerm.setCursorPos(x, y)
+        monitor.setCursorPos(x, y)
+    end
+
+    mirroredTerm.clearLine = function()
+        originalTerm.clearLine()
+        monitor.clearLine()
+    end
+
+    mirroredTerm.setTextColor = function(color)
+        originalTerm.setTextColor(color)
+        monitor.setTextColor(color)
+    end
+
+    mirroredTerm.setBackgroundColor = function(color)
+        originalTerm.setBackgroundColor(color)
+        monitor.setBackgroundColor(color)
+    end
+
+    mirroredTerm.scroll = function(n)
+        originalTerm.scroll(n)
+        monitor.scroll(n)
+    end
+
+    -- Redirect the terminal to the mirrored terminal
+    term.redirect(mirroredTerm)
+end
+
 -- // On Load
 local function Init()
     if not fs.exists("pra/config.json") then
@@ -511,6 +567,9 @@ local function Init()
         DoSetup()
     end
 end
+
+local monitor = peripheral.wrap("right")
+MirrorToMonitor(monitor)
 
 shell.run("clear")
 textutils.slowPrint("Booting...")
