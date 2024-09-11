@@ -11,14 +11,11 @@ function clone(url, dir)
 end
 
 clone("https://github.com/Sectly/MC-CC-MEK-PRA", "pra")
-shell.run("wget run https://basalt.madefor.cc/install.lua release basalt-1.7.1.lua")
+shell.run("wget run https://basalt.madefor.cc/install.lua") -- release basalt-1.7.1.lua
 
 shell.run("clear")
-textutils.slowPrint("Downloaded main file to /pra")
-textutils.slowPrint("Downloaded cobalt 2 file to /cobalt")
-
-sleep(1)
-
+textutils.slowPrint("Downloaded Paid Re-Actor to /pra")
+textutils.slowPrint("Downloaded basalt file to cobalt/lua")
 textutils.slowPrint("Creating startup file...")
 
 local file = fs.open("/startup.lua", "w")
