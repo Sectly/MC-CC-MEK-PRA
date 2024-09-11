@@ -399,35 +399,25 @@ local function DoSetup()
     local maxTemp = tonumber(read())
     if not maxTemp then maxTemp = 745 end
 
-    print("")
-
     -- // Ask for Minimum Health
     print("Set The Minimum Health Percentage (Default: 0.10):")
     local minHealth = tonumber(read())
     if not minHealth then minHealth = 0.10 end
-
-    print("")
 
     -- // Ask for Minimum Coolant Level
     print("Set The Minimum Coolant Percentage (Default: 0.95):")
     local minCoolant = tonumber(read())
     if not minCoolant then minCoolant = 0.95 end
 
-    print("")
-
     -- // Ask for Minimum Fuel Level
     print("Set The Minimum Fuel Level Percentage (Default: 0.10):")
     local minFuel = tonumber(read())
     if not minFuel then minFuel = 0.10 end
 
-    print("")
-
     -- // Ask for Waste Level Limit
     print("Set The Waste Level Limit Percentage (Default: 0.90):")
     local wasteLimit = tonumber(read())
     if not wasteLimit then wasteLimit = 0.90 end
-
-    print("")
 
     -- // Ask for Turbine Energy Level Limit
     print("Set The Turbine Energy Level Limit Percentage (Default: 0.90):")
@@ -512,6 +502,9 @@ local function Init()
         sleep(3)
 
         shell.run("clear")
+
+        pcall(NETWORK.REACTOR.scram)
+        GLOBAL.STATE = STATES.STOPPED
 
         DefaultLoop();
     else

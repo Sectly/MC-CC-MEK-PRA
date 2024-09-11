@@ -17,7 +17,7 @@ shell.run("clear")
 textutils.slowPrint("Downloaded main file to /pra")
 textutils.slowPrint("Downloaded cobalt 2 file to /cobalt")
 
-sleep(3)
+sleep(1)
 
 textutils.slowPrint("Creating startup file...")
 
