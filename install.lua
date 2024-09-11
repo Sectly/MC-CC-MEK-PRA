@@ -11,7 +11,7 @@ function clone(url, dir)
 end
 
 clone("https://github.com/Sectly/MC-CC-MEK-PRA", "pra")
-clone("https://github.com/ebernerd/cobalt-2", "cobalt")
+shell.run("wget run https://basalt.madefor.cc/install.lua release basalt-1.7.1.lua")
 
 shell.run("clear")
 textutils.slowPrint("Downloaded main file to /pra")
