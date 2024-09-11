@@ -189,17 +189,6 @@ local function UpdateData()
 	}
 end
 
--- Helper function to draw progress bars
-local function drawProgressBar(x, y, width, percentage, color, background)
-    local filledWidth = math.floor((percentage / 100) * width)
-    term.setCursorPos(x, y)
-    term.setBackgroundColor(color)
-    term.write(string.rep(" ", filledWidth))
-
-    term.setBackgroundColor(background)
-    term.write(string.rep(" ", width - filledWidth))
-end
-
 -- Function to display reactor status
 local function drawReactorStatus(state, locked)
     term.setCursorPos(2, 2)
@@ -237,28 +226,23 @@ local function drawReactorData(data)
     term.setCursorPos(2, 4)
     term.setBackgroundColor(colors.black)
     term.setTextColor(colors.white)
-    term.write("Temperature: ")
-    drawProgressBar(20, 4, 20, (data.REACTOR.TEMPERATURE / GLOBAL.CONFIG.REACTOR.MAXIMUM_TEMPERATURE.VALUE) * 100, colors.red, colors.gray)
+    term.write("Temperature: " .. math.floor(data.REACTOR.TEMPERATURE) .. "K")
 
     -- Coolant Level
     term.setCursorPos(2, 6)
-    term.write("Coolant Level: ")
-    drawProgressBar(20, 6, 20, data.REACTOR.COOLANT * 100, colors.blue, colors.gray)
+    term.write("Coolant Level: " .. math.floor(data.REACTOR.COOLANT * 100) .. "%")
 
     -- Fuel Level
     term.setCursorPos(2, 8)
-    term.write("Fuel Level: ")
-    drawProgressBar(20, 8, 20, data.REACTOR.FUEL_LEVEL * 100, colors.green, colors.gray)
+    term.write("Fuel Level: " .. math.floor(data.REACTOR.FUEL_LEVEL * 100) .. "%")
 
     -- Waste Level
     term.setCursorPos(2, 10)
-    term.write("Waste Level: ")
-    drawProgressBar(20, 10, 20, data.REACTOR.WASTE * 100, colors.red, colors.gray)
+    term.write("Waste Level: " .. math.floor(data.REACTOR.WASTE * 100) .. "%")
 
     -- Turbine Energy Level
     term.setCursorPos(2, 12)
-    term.write("Turbine Energy: ")
-    drawProgressBar(20, 12, 20, data.TURBINE.ENERGY * 100, colors.yellow, colors.gray)
+    term.write("Turbine Energy: " .. math.floor(data.TURBINE.ENERGY * 100) .. "%")
 end
 
 -- Function to display errors/warnings
@@ -357,13 +341,13 @@ local function DefaultLoop()
 		end
 	end
 
+    pcall(UpdateScreen)
+
 	if GLOBAL.CONFIG.LOCKED then
 		pcall(NETWORK.REACTOR.scram)
 
 		LockSystem()
 	end
-
-	pcall(UpdateScreen)
 
 	sleep()
 
