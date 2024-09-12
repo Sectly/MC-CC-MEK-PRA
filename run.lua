@@ -237,8 +237,8 @@ local function drawReactorStatus(state, locked)
 		term.write("Reactor Status: OFFLINE")
 	end
 
-    term.setTextColor(colors.white)
-    term.write(" | Paid Re-Actor V0.0.1 By: Sectly")
+	term.setTextColor(colors.white)
+	term.write(" | Paid Re-Actor V0.0.1 By: Sectly")
 end
 
 -- Function to display reactor data
@@ -324,10 +324,10 @@ local function UpdateScreen()
 end
 
 local function LockSystem()
-    print(" ")
+	print(" ")
 	print("SYSTEM LOCKED. Enter 'unlock' to unlock the system.")
 	print("It only locks up after an SCRAM, Please double check the reactor before starting it again.")
-    print(" ")
+	print(" ")
 
 	while true do
 		local input = read()
@@ -337,8 +337,8 @@ local function LockSystem()
 			GLOBAL.STATE = STATES.STOPPED
 			SaveFile(GLOBAL.CONFIG, "pra/config.json")
 			print("System unlocked, Rebooting...")
-            sleep(1)
-            os.reboot()
+			sleep(1)
+			os.reboot()
 			break
 		else
 			print("Invalid command. System remains locked.")
@@ -348,18 +348,18 @@ end
 
 -- // Always Active Once Setup Step Is Done
 local function DefaultLoop()
-    local ShouldStart = false;
+	local ShouldStart = false
 
 	if not pcall(UpdateData) then
 		GLOBAL.STATE = STATES.ERROR
 
-		ShouldStart = false;
+		ShouldStart = false
 	end
 
 	pcall(UpdateScreen)
 
 	if GLOBAL.DATA.ON_SIGNAL then
-		ShouldStart = true;
+		ShouldStart = true
 	else
 		pcall(NETWORK.REACTOR.scram)
 
@@ -373,7 +373,7 @@ local function DefaultLoop()
 	end
 
 	if not GLOBAL.DATA.TURBINE.ENERGY then
-		ShouldStart = false;
+		ShouldStart = false
 
 		GLOBAL.STATE = STATES.ERROR
 	end
@@ -383,13 +383,13 @@ local function DefaultLoop()
 			GLOBAL.STATE = STATES.STOPPED
 		end
 
-		ShouldStart = false;
+		ShouldStart = false
 
 		pcall(NETWORK.REACTOR.scram)
 	end
 
 	if GLOBAL.STATE == STATES.EMERGENCY then
-		ShouldStart = false;
+		ShouldStart = false
 
 		GLOBAL.CONFIG.LOCKED = true
 
@@ -401,7 +401,7 @@ local function DefaultLoop()
 	end
 
 	if GLOBAL.STATE == STATES.ERROR then
-		ShouldStart = false;
+		ShouldStart = false
 
 		print("ERROR. Seems something ain't right, Double check everything then reboot system.")
 
@@ -412,7 +412,7 @@ local function DefaultLoop()
 	end
 
 	if ShouldStart then
-        pcall(NETWORK.REACTOR.activate)
+		pcall(NETWORK.REACTOR.activate)
 
 		GLOBAL.STATE = STATES.RUNNING
 	end
@@ -427,10 +427,12 @@ local function DefaultLoop()
 
 	pcall(UpdateScreen)
 
-    if #FailedChecks > 0 and (GLOBAL.STATE ~= STATES.ERROR and GLOBAL.STATE ~= STATES.EMERGENCY and GLOBAL.STATE ~= STATES.STOPPED) then
+	if #FailedChecks > 0 and (GLOBAL.STATE ~= STATES.ERROR and GLOBAL.STATE ~= STATES.EMERGENCY and GLOBAL.STATE ~= STATES.STOPPED) then
 		pcall(NETWORK.REACTOR.scram)
-
-		LockSystem()
+		GLOBAL.STATE = STATES.STOPPED
+		print("Refreshing system, Rebooting...")
+		sleep(1)
+		os.reboot()
 	end
 
 	sleep()
