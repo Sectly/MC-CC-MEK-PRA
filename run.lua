@@ -198,24 +198,45 @@ local function UpdateData()
 		}
 	end
 
-	GLOBAL.DATA = {
-		ON_SIGNAL = redstone.getInput("top"),
+	if (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) then
+		GLOBAL.DATA = {
+			ON_SIGNAL = redstone.getInput("top") or false,
+	
+			REACTOR = {
+				ONLINE = NETWORK.REACTOR.getStatus(),
+				BURN_RATE = NETWORK.REACTOR.getBurnRate(),
+				MAX_BURN_RATE = NETWORK.REACTOR.getMaxBurnRate(),
+				TEMPERATURE = NETWORK.REACTOR.getTemperature(),
+				DAMAGE = NETWORK.REACTOR.getDamagePercent(),
+				COOLANT = NETWORK.REACTOR.getCoolantFilledPercentage(),
+				WASTE = NETWORK.REACTOR.getWasteFilledPercentage(),
+				FUEL_LEVEL = NETWORK.REACTOR.getFuelFilledPercentage(),
+			},
+	
+			TURBINE = {
+				ENERGY = NETWORK.TURBINE.getEnergyFilledPercentage(),
+			},
+		}
+	else
+		GLOBAL.DATA = {
+			ON_SIGNAL = false,
 
-		REACTOR = {
-			ONLINE = NETWORK.REACTOR.getStatus(),
-			BURN_RATE = NETWORK.REACTOR.getBurnRate(),
-			MAX_BURN_RATE = NETWORK.REACTOR.getMaxBurnRate(),
-			TEMPERATURE = NETWORK.REACTOR.getTemperature(),
-			DAMAGE = NETWORK.REACTOR.getDamagePercent(),
-			COOLANT = NETWORK.REACTOR.getCoolantFilledPercentage(),
-			WASTE = NETWORK.REACTOR.getWasteFilledPercentage(),
-			FUEL_LEVEL = NETWORK.REACTOR.getFuelFilledPercentage(),
-		},
+			REACTOR = {
+				ONLINE = false,
+				BURN_RATE = -1,
+				MAX_BURN_RATE = -1,
+				TEMPERATURE = -1,
+				DAMAGE = -1,
+				COOLANT = -1,
+				WASTE = -1,
+				FUEL_LEVEL = -1,
+			},
 
-		TURBINE = {
-			ENERGY = NETWORK.TURBINE.getEnergyFilledPercentage(),
-		},
-	}
+			TURBINE = {
+				ENERGY = -1,
+			},
+		}
+	end
 end
 
 -- Function to display reactor status
