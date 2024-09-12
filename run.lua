@@ -336,14 +336,18 @@ end
 
 -- // Always Active Once Setup Step Is Done
 local function DefaultLoop()
+    local ShouldStart = false;
+
 	if not pcall(UpdateData) then
 		GLOBAL.STATE = STATES.ERROR
+
+		ShouldStart = false;
 	end
 
-	if GLOBAL.DATA.ON_SIGNAL then
-		pcall(NETWORK.REACTOR.activate)
+	pcall(UpdateScreen)
 
-		GLOBAL.STATE = STATES.RUNNING
+	if GLOBAL.DATA.ON_SIGNAL then
+		ShouldStart = true;
 	else
 		pcall(NETWORK.REACTOR.scram)
 
@@ -357,6 +361,8 @@ local function DefaultLoop()
 	end
 
 	if not GLOBAL.DATA.TURBINE.ENERGY then
+		ShouldStart = false;
+
 		GLOBAL.STATE = STATES.ERROR
 	end
 
@@ -365,10 +371,14 @@ local function DefaultLoop()
 			GLOBAL.STATE = STATES.STOPPED
 		end
 
+		ShouldStart = false;
+
 		pcall(NETWORK.REACTOR.scram)
 	end
 
 	if GLOBAL.STATE == STATES.EMERGENCY then
+		ShouldStart = false;
+
 		GLOBAL.CONFIG.LOCKED = true
 
 		SaveFile(GLOBAL.CONFIG, "pra/config.json")
@@ -379,12 +389,20 @@ local function DefaultLoop()
 	end
 
 	if GLOBAL.STATE == STATES.ERROR then
+		ShouldStart = false;
+
 		print("ERROR. Seems something ain't right, Double check everything then reboot system.")
 
 		while true do
 			local input = read()
 			print("ERROR. Seems something ain't right, Double check everything then reboot system.")
 		end
+	end
+
+	if ShouldStart then
+        pcall(NETWORK.REACTOR.activate)
+
+		GLOBAL.STATE = STATES.RUNNING
 	end
 
 	pcall(UpdateScreen)
@@ -394,6 +412,8 @@ local function DefaultLoop()
 
 		LockSystem()
 	end
+
+	pcall(UpdateScreen)
 
 	sleep()
 
