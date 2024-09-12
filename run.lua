@@ -156,7 +156,11 @@ local function AllChecksMet()
 		local OK, Name, Emergency = Check()
 
 		if not OK then
-			if #FailedChecks <= 0 or not isViolated(Name) then
+			if #FailedChecks <= 0 then
+				table.insert(FailedChecks, {
+					Name = Name,
+				})
+			elseif not isViolated(Name) then
 				table.insert(FailedChecks, {
 					Name = Name,
 				})
