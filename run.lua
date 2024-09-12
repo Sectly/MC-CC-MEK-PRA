@@ -387,6 +387,10 @@ local function DefaultLoop()
 
 		pcall(NETWORK.REACTOR.scram)
 	else
+		if #FailedChecks > 0 then
+			print(#FailedChecks, GLOBAL.STATE, GLOBAL.DATA.ON_SIGNAL)
+		end
+
 		if #FailedChecks > 0 and (GLOBAL.STATE == STATES.EMERGENCY or GLOBAL.STATE == STATES.STOPPED) and GLOBAL.DATA.ON_SIGNAL then
 			ShouldStart = false
 
