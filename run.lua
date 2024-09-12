@@ -141,14 +141,26 @@ end
 -- // Check If All Checks Are Met
 local FailedChecks = {}
 
+-- Helper function to check if a specific violation exists in FailedChecks
+local function isViolated(checkName)
+	for _, check in ipairs(FailedChecks) do
+		if string.match(string.lower(check.Name), string.lower(checkName)) then
+			return true
+		end
+	end
+	return false
+end
+
 local function AllChecksMet()
 	for Num, Check in ipairs(CHECKS) do
 		local OK, Name, Emergency = Check()
 
 		if not OK then
-			table.insert(FailedChecks, {
-				Name = Name,
-			})
+			if #FailedChecks <= 0 or not isViolated(Name) then
+				table.insert(FailedChecks, {
+					Name = Name,
+				})
+			end
 
 			if Emergency then
 				GLOBAL.STATE = STATES.EMERGENCY
@@ -221,16 +233,6 @@ local function drawReactorStatus(state, locked)
 
     term.setTextColor(colors.white)
     term.write(" | Paid Re-Actor V0.0.1 By: Sectly")
-end
-
--- Helper function to check if a specific violation exists in FailedChecks
-local function isViolated(checkName)
-	for _, check in ipairs(FailedChecks) do
-		if string.match(string.lower(check.Name), string.lower(checkName)) then
-			return true
-		end
-	end
-	return false
 end
 
 -- Function to display reactor data
