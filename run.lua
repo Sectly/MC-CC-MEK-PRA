@@ -288,8 +288,12 @@ local function drawReactorData(data)
 end
 
 -- Function to display errors/warnings
-local function drawErrors(failedChecks)
+local function drawErrors(failedChecks, UpdateCallback)
 	if #failedChecks > 0 then
+		if UpdateCallback then
+			pcall(UpdateCallback)
+		end
+
 		term.setCursorPos(2, 14)
 		term.setBackgroundColor(colors.red)
 		term.setTextColor(colors.white)
@@ -308,7 +312,7 @@ local function UpdateScreen()
 	term.clear()
 	drawReactorStatus(GLOBAL.STATE, GLOBAL.CONFIG.LOCKED)
 	drawReactorData(data)
-	drawErrors(failedChecks)
+	drawErrors(failedChecks, UpdateScreen)
 end
 
 local function LockSystem()
