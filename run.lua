@@ -11,6 +11,8 @@ local GLOBAL = {
 	STATE = 0, -- // Current State
 
 	DATA = { -- // Live Data From Connected Peripherals
+	    NOT_CONNECTED = true,
+
 		ON_SIGNAL = redstone.getInput("top") or false,
 
 		REACTOR = {
@@ -200,6 +202,8 @@ local function UpdateData()
 
 	if (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) then
 		GLOBAL.DATA = {
+			NOT_CONNECTED = false,
+
 			ON_SIGNAL = redstone.getInput("top") or false,
 	
 			REACTOR = {
@@ -219,6 +223,8 @@ local function UpdateData()
 		}
 	else
 		GLOBAL.DATA = {
+            NOT_CONNECTED = true,
+
 			ON_SIGNAL = false,
 
 			REACTOR = {
@@ -246,7 +252,10 @@ local function drawReactorStatus(state, locked)
 	term.setTextColor(colors.white)
 	term.clearLine()
 
-	if state == STATES.RUNNING then
+	if GLOBAL.DATA.NOT_CONNECTED then
+		term.setTextColor(colors.orange)
+		term.write("Reactor Status: NOT CONNECTED")
+    elseif state == STATES.RUNNING then
 		term.setTextColor(colors.green)
 		term.write("Reactor Status: ONLINE")
 	elseif state == STATES.EMERGENCY then
@@ -340,8 +349,20 @@ local function drawErrors(failedChecks, UpdateCallback)
 		term.clearLine()
 		term.write("ERROR: Reactor Condition(s) Violated!")
 	else
-		term.setCursorPos(2, 14)
-		term.clearLine()
+        if GLOBAL.DATA.NOT_CONNECTED then
+			if UpdateCallback then
+				pcall(UpdateCallback)
+			end
+	
+			term.setCursorPos(2, 14)
+			term.setBackgroundColor(colors.red)
+			term.setTextColor(colors.white)
+			term.clearLine()
+			term.write("ERROR: Reactor And/Or Turbine Not Found On Network!")
+		else
+			term.setCursorPos(2, 14)
+		    term.clearLine()
+		end
 	end
 end
 
@@ -383,6 +404,12 @@ local function DefaultLoop()
 	local ShouldStart = false
 
 	if not pcall(UpdateData) then
+		GLOBAL.STATE = STATES.ERROR
+
+		ShouldStart = false
+	end
+
+	if GLOBAL.DATA.NOT_CONNECTED then
 		GLOBAL.STATE = STATES.ERROR
 
 		ShouldStart = false
