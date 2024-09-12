@@ -433,6 +433,8 @@ local function DefaultLoop()
 		pcall(UpdateScreen)
 
 		while true do
+			pcall(UpdateData)
+		
 			sleep(5)
 
 			if (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) and not GLOBAL.DATA.NOT_CONNECTED then
