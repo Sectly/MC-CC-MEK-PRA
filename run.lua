@@ -427,7 +427,7 @@ local function DefaultLoop()
 
 	pcall(UpdateScreen)
 
-    if #FailedChecks > 0 and (GLOBAL.STATE ~= STATES.ERROR and GLOBAL.STATE ~= STATES.EMERGENCY) then
+    if #FailedChecks > 0 and (GLOBAL.STATE ~= STATES.ERROR and GLOBAL.STATE ~= STATES.EMERGENCY and GLOBAL.STATE ~= STATES.STOPPED) then
 		pcall(NETWORK.REACTOR.scram)
 
 		LockSystem()
