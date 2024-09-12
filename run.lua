@@ -386,6 +386,17 @@ local function DefaultLoop()
 		ShouldStart = false
 
 		pcall(NETWORK.REACTOR.scram)
+	else
+		if GLOBAL.STATE == STATES.ERROR or GLOBAL.STATE == STATES.EMERGENCY or (GLOBAL.STATE == STATES.STOPPED and GLOBAL.DATA.ON_SIGNAL) then
+			ShouldStart = false
+
+			pcall(NETWORK.REACTOR.scram)
+			GLOBAL.STATE = STATES.STOPPED
+
+			print("Refreshing system, Rebooting...")
+			sleep(1)
+			os.reboot()
+		end
 	end
 
 	if GLOBAL.STATE == STATES.EMERGENCY then
