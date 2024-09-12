@@ -400,7 +400,7 @@ local function DefaultLoop()
 		pcall(NETWORK.REACTOR.scram)
 		GLOBAL.STATE = STATES.STOPPED
 
-		print("Refreshing system, Rebooting...")
+		print("Violating Ended. Refreshing system, Rebooting...")
 		sleep(1)
 		os.reboot()
 	end
@@ -447,7 +447,7 @@ local function DefaultLoop()
 	if #FailedChecks > 0 and (GLOBAL.STATE ~= STATES.ERROR and GLOBAL.STATE ~= STATES.EMERGENCY and GLOBAL.STATE ~= STATES.STOPPED) then
 		pcall(NETWORK.REACTOR.scram)
 		GLOBAL.STATE = STATES.STOPPED
-		print("Refreshing system, Rebooting...")
+		print("Phantom State Ended. Refreshing system, Rebooting...")
 		sleep(1)
 		os.reboot()
 	end
