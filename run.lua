@@ -288,6 +288,10 @@ end
 
 -- Function to display reactor data
 local function drawReactorData(data)
+    if not (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) or GLOBAL.DATA.NOT_CONNECTED then
+		return nil
+	end
+
 	-- Temperature
 	term.setCursorPos(2, 4)
 	term.setBackgroundColor(colors.black)
@@ -746,7 +750,10 @@ local function Init()
 
 		shell.run("clear")
 
-		pcall(NETWORK.REACTOR.scram)
+		if (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) then
+			pcall(NETWORK.REACTOR.scram)
+		end
+
 		GLOBAL.STATE = STATES.STOPPED
 
 		DefaultLoop()
