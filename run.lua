@@ -472,10 +472,10 @@ local function DoSetup()
 	end
 
 	-- // Ask for Minimum Health
-	print("Set The Minimum Health Percentage (Default: 0.10):")
+	print("Set The Minimum Health Percentage (Default: 0.15):")
 	local minHealth = tonumber(read())
 	if not minHealth then
-		minHealth = 0.10
+		minHealth = 0.15
 	end
 
 	-- // Ask for Minimum Coolant Level
