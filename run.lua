@@ -367,6 +367,12 @@ local function drawErrors(failedChecks, UpdateCallback)
 			term.setTextColor(colors.white)
 			term.clearLine()
 			term.write("ERROR: Reactor And/Or Turbine Not Found On Network!")
+
+			term.setCursorPos(3, 14)
+			term.setBackgroundColor(colors.red)
+			term.setTextColor(colors.white)
+			term.clearLine()
+			term.write("NOTE: System Will Auto-Reboot Once Issue Has Been Fixed!")
 		else
 			term.setCursorPos(2, 14)
 			term.clearLine()
@@ -417,6 +423,8 @@ local function DefaultLoop()
 		ShouldStart = false
 	end
 
+	pcall(UpdateScreen)
+
 	if GLOBAL.DATA.NOT_CONNECTED then
 		GLOBAL.STATE = STATES.ERROR
 
@@ -425,15 +433,6 @@ local function DefaultLoop()
 		pcall(UpdateScreen)
 
 		while true do
-		    shell.run("clear")
-		
-			pcall(UpdateScreen)
-		
-			print(" ")
-			print("DISCONNECTED. I can't find the reactor and/or turbine, Double check everything then reboot system")
-			print("Retrying in 10 seconds...")
-			print(" ")
-
 			sleep(10)
 
 			if (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) and not GLOBAL.DATA.NOT_CONNECTED then
