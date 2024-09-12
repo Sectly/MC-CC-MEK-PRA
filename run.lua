@@ -226,7 +226,7 @@ end
 -- Helper function to check if a specific violation exists in FailedChecks
 local function isViolated(checkName)
 	for _, check in ipairs(FailedChecks) do
-		if check.Name == checkName then
+		if string.match(string.lower(check.Name), string.lower(checkName)) then
 			return true
 		end
 	end
@@ -298,7 +298,7 @@ local function drawErrors(failedChecks, UpdateCallback)
 		term.setBackgroundColor(colors.red)
 		term.setTextColor(colors.white)
 		term.clearLine()
-		term.write("ERROR: Reactor Condition Violation")
+		term.write("ERROR: "..#failedChecks.." Reactor Condition Violated!")
 	else
 		term.setCursorPos(2, 14)
 		term.clearLine()
