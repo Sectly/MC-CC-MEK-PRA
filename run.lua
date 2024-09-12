@@ -425,19 +425,21 @@ local function DefaultLoop()
 		pcall(UpdateScreen)
 
 		while true do
+		    shell.run("clear")
+		
+			pcall(UpdateScreen)
+		
 			print(" ")
-			print("DISCONNECTED. I can't find the reactor and/or turbine, Double check everything then reboot system.")
-			print("Type 'reboot' to reboot system.")
+			print("DISCONNECTED. I can't find the reactor and/or turbine, Double check everything then reboot system")
+			print("Retrying in 10 seconds...")
 			print(" ")
 
-			local input = read()
+			sleep(10)
 
-			if input == "reboot" then
-				print("Rebooting...")
-
-				sleep(3)
-
+			if (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) and not GLOBAL.DATA.NOT_CONNECTED then
 				os.reboot()
+			else
+				sleep()
 			end
 		end
 	end
