@@ -3,15 +3,15 @@
 -- // Paid Re-Actor, An ComputerCraft Program That Gives You An Easy To Read And Use GUI To Control And Monitor An Mekanism Fission Reactor
 
 local NETWORK = {
-	REACTOR = peripheral.find("fissionReactorLogicAdapter"),
-	TURBINE = peripheral.find("turbineValve"),
+	REACTOR = peripheral.find("fissionReactorLogicAdapter") or nil,
+	TURBINE = peripheral.find("turbineValve") or nil,
 }
 
 local GLOBAL = {
 	STATE = 0, -- // Current State
 
 	DATA = { -- // Live Data From Connected Peripherals
-		ON_SIGNAL = redstone.getInput("top"),
+		ON_SIGNAL = redstone.getInput("top") or false,
 
 		REACTOR = {
 			ONLINE = 0,
@@ -191,6 +191,13 @@ end
 
 -- // Update Data
 local function UpdateData()
+	if not (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) then
+		NETWORK = {
+			REACTOR = peripheral.find("fissionReactorLogicAdapter") or nil,
+			TURBINE = peripheral.find("turbineValve") or nil,
+		}
+	end
+
 	GLOBAL.DATA = {
 		ON_SIGNAL = redstone.getInput("top"),
 
