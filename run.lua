@@ -14,18 +14,18 @@ local GLOBAL = {
 		ON_SIGNAL = redstone.getInput("top"),
 
 		REACTOR = {
-			ONLINE = NETWORK.REACTOR.getStatus(),
-			BURN_RATE = NETWORK.REACTOR.getBurnRate(),
-			MAX_BURN_RATE = NETWORK.REACTOR.getMaxBurnRate(),
-			TEMPERATURE = NETWORK.REACTOR.getTemperature(),
-			DAMAGE = NETWORK.REACTOR.getDamagePercent(),
-			COOLANT = NETWORK.REACTOR.getCoolantFilledPercentage(),
-			WASTE = NETWORK.REACTOR.getWasteFilledPercentage(),
-			FUEL_LEVEL = NETWORK.REACTOR.getFuelFilledPercentage(),
+			ONLINE = 0,
+			BURN_RATE = 0,
+			MAX_BURN_RATE = 0,
+			TEMPERATURE = 0,
+			DAMAGE = 0,
+			COOLANT = 0,
+			WASTE = 0,
+			FUEL_LEVEL = 0,
 		},
 
 		TURBINE = {
-			ENERGY = NETWORK.TURBINE.getEnergyFilledPercentage(),
+			ENERGY = 0,
 		},
 	},
 
@@ -648,6 +648,8 @@ local function Init()
 		sleep()
 
 		print("Starting...")
+
+		pcall(UpdateData)
 
 		sleep(3)
 
