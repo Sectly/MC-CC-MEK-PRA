@@ -55,7 +55,7 @@ local GLOBAL = {
 				INFO = "The Minimum Fuel Level, If It Goes Below This An Automatic Stop Will Be Called.",
 			},
 			WASTE_LEVEL_LIMIT = {
-				VALUE = 0.90,
+				VALUE = 85,
 				SOLID = false,
 				INFO = "The Waste Level Limit, If It Goes Above This An Automatic Stop Will Be Called.",
 			},
@@ -493,10 +493,10 @@ local function DoSetup()
 	end
 
 	-- // Ask for Waste Level Limit
-	print("Set The Waste Level Limit Percentage (Default: 0.90):")
+	print("Set The Waste Level Limit Percentage (Default: 0.85):")
 	local wasteLimit = tonumber(read())
 	if not wasteLimit then
-		wasteLimit = 0.90
+		wasteLimit = 0.85
 	end
 
 	-- // Ask for Turbine Energy Level Limit
