@@ -433,6 +433,10 @@ function ValidateConnection()
 		while true do
 			pcall(UpdateData)
 
+			if (NETWORK and NETWORK.REACTOR) then
+				pcall(NETWORK.REACTOR.scram)
+			end
+
 			sleep(5)
 
 			if (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) and not GLOBAL.DATA.NOT_CONNECTED then
