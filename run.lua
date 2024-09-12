@@ -40,7 +40,7 @@ local GLOBAL = {
 				INFO = "The Maximum Temperature, If It Goes Past This An Automatic SCRAM (Emergency) Will Be Called.",
 			},
 			MINIMUM_HEALTH = {
-				VALUE = 0.10,
+				VALUE = 0.15,
 				SOLID = false,
 				INFO = "The Minimum Health, If It Goes Below This An Automatic SCRAM (Emergency) Will Be Called.",
 			},
