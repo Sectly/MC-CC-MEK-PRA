@@ -152,10 +152,14 @@ local function isViolated(checkName)
 end
 
 local function AllChecksMet()
+    local DidACheckFail = false;
+
 	for Num, Check in ipairs(CHECKS) do
 		local OK, Name, Emergency = Check()
 
 		if not OK then
+			DidACheckFail = true;
+
 			if #FailedChecks <= 50 then
 				if #FailedChecks <= 0 then
 					table.insert(FailedChecks, {
@@ -179,7 +183,7 @@ local function AllChecksMet()
 	end
 
 	if #FailedChecks > 0 then
-		return false
+		return false, #FailedChecks > 0 and (GLOBAL.STATE == STATES.EMERGENCY or GLOBAL.STATE == STATES.STOPPED) and GLOBAL.DATA.ON_SIGNAL and not DidACheckFail
 	end
 
 	return GLOBAL.STATE ~= STATES.RUNNING or GLOBAL.DATA.REACTOR.ONLINE
@@ -378,7 +382,9 @@ local function DefaultLoop()
 		GLOBAL.STATE = STATES.ERROR
 	end
 
-	if not AllChecksMet() then
+    local EverythingOk, TryRefeshing = AllChecksMet()
+
+	if not EverythingOk then
 		if GLOBAL.STATE == STATES.RUNNING then
 			GLOBAL.STATE = STATES.STOPPED
 		end
@@ -386,21 +392,17 @@ local function DefaultLoop()
 		ShouldStart = false
 
 		pcall(NETWORK.REACTOR.scram)
-	else
-		if #FailedChecks > 0 then
-			print(#FailedChecks, GLOBAL.STATE, GLOBAL.DATA.ON_SIGNAL)
-		end
+	end
 
-		if #FailedChecks > 0 and (GLOBAL.STATE == STATES.EMERGENCY or GLOBAL.STATE == STATES.STOPPED) and GLOBAL.DATA.ON_SIGNAL then
-			ShouldStart = false
+	if TryRefeshing then
+		ShouldStart = false
 
-			pcall(NETWORK.REACTOR.scram)
-			GLOBAL.STATE = STATES.STOPPED
+		pcall(NETWORK.REACTOR.scram)
+		GLOBAL.STATE = STATES.STOPPED
 
-			print("Refreshing system, Rebooting...")
-			sleep(1)
-			os.reboot()
-		end
+		print("Refreshing system, Rebooting...")
+		sleep(1)
+		os.reboot()
 	end
 
 	if GLOBAL.STATE == STATES.EMERGENCY then
