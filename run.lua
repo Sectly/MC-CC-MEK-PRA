@@ -414,6 +414,11 @@ local function LockSystem()
 end
 
 function ValidateConnection()
+	NETWORK = {
+		REACTOR = peripheral.find("fissionReactorLogicAdapter") or nil,
+		TURBINE = peripheral.find("turbineValve") or nil,
+	}
+
 	if not (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) then
 		GLOBAL.DATA.NOT_CONNECTED = true
 	end
