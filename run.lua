@@ -304,7 +304,7 @@ local function drawErrors(failedChecks, UpdateCallback)
 		term.setBackgroundColor(colors.red)
 		term.setTextColor(colors.white)
 		term.clearLine()
-		term.write("ERROR: "..#failedChecks.." Reactor Condition Violated!")
+		term.write("ERROR: Reactor Condition(s) Violated!")
 	else
 		term.setCursorPos(2, 14)
 		term.clearLine()
@@ -424,6 +424,12 @@ local function DefaultLoop()
 	end
 
 	pcall(UpdateScreen)
+
+    if #FailedChecks > 0 and (GLOBAL.STATE ~= STATES.ERROR and GLOBAL.STATE ~= STATES.EMERGENCY) then
+		pcall(NETWORK.REACTOR.scram)
+
+		LockSystem()
+	end
 
 	sleep()
 
