@@ -11,7 +11,7 @@ local GLOBAL = {
 	STATE = 0, -- // Current State
 
 	DATA = { -- // Live Data From Connected Peripherals
-	    NOT_CONNECTED = true,
+		NOT_CONNECTED = true,
 
 		ON_SIGNAL = redstone.getInput("top") or false,
 
@@ -154,13 +154,13 @@ local function isViolated(checkName)
 end
 
 local function AllChecksMet()
-    local DidACheckFail = false;
+	local DidACheckFail = false
 
 	for Num, Check in ipairs(CHECKS) do
 		local OK, Name, Emergency = Check()
 
 		if not OK then
-			DidACheckFail = true;
+			DidACheckFail = true
 
 			if #FailedChecks <= 50 then
 				if #FailedChecks <= 0 then
@@ -185,7 +185,11 @@ local function AllChecksMet()
 	end
 
 	if #FailedChecks > 0 then
-		return false, #FailedChecks > 0 and (GLOBAL.STATE == STATES.EMERGENCY or GLOBAL.STATE == STATES.STOPPED) and GLOBAL.DATA.ON_SIGNAL and not DidACheckFail
+		return false,
+			#FailedChecks > 0
+				and (GLOBAL.STATE == STATES.EMERGENCY or GLOBAL.STATE == STATES.STOPPED)
+				and GLOBAL.DATA.ON_SIGNAL
+				and not DidACheckFail
 	end
 
 	return GLOBAL.STATE ~= STATES.RUNNING or GLOBAL.DATA.REACTOR.ONLINE
@@ -200,12 +204,12 @@ local function UpdateData()
 		}
 	end
 
-	if (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) then
+	if NETWORK and NETWORK.REACTOR and NETWORK.TURBINE then
 		GLOBAL.DATA = {
 			NOT_CONNECTED = false,
 
 			ON_SIGNAL = redstone.getInput("top") or false,
-	
+
 			REACTOR = {
 				ONLINE = NETWORK.REACTOR.getStatus(),
 				BURN_RATE = NETWORK.REACTOR.getBurnRate(),
@@ -216,14 +220,14 @@ local function UpdateData()
 				WASTE = NETWORK.REACTOR.getWasteFilledPercentage(),
 				FUEL_LEVEL = NETWORK.REACTOR.getFuelFilledPercentage(),
 			},
-	
+
 			TURBINE = {
 				ENERGY = NETWORK.TURBINE.getEnergyFilledPercentage(),
 			},
 		}
 	else
 		GLOBAL.DATA = {
-            NOT_CONNECTED = true,
+			NOT_CONNECTED = true,
 
 			ON_SIGNAL = false,
 
@@ -255,7 +259,7 @@ local function drawReactorStatus(state, locked)
 	if GLOBAL.DATA.NOT_CONNECTED then
 		term.setTextColor(colors.orange)
 		term.write("Reactor Status: NOT CONNECTED")
-    elseif state == STATES.RUNNING then
+	elseif state == STATES.RUNNING then
 		term.setTextColor(colors.green)
 		term.write("Reactor Status: ONLINE")
 	elseif state == STATES.EMERGENCY then
@@ -349,11 +353,11 @@ local function drawErrors(failedChecks, UpdateCallback)
 		term.clearLine()
 		term.write("ERROR: Reactor Condition(s) Violated!")
 	else
-        if GLOBAL.DATA.NOT_CONNECTED then
+		if GLOBAL.DATA.NOT_CONNECTED then
 			if UpdateCallback then
 				pcall(UpdateCallback)
 			end
-	
+
 			term.setCursorPos(2, 14)
 			term.setBackgroundColor(colors.red)
 			term.setTextColor(colors.white)
@@ -361,7 +365,7 @@ local function drawErrors(failedChecks, UpdateCallback)
 			term.write("ERROR: Reactor And/Or Turbine Not Found On Network!")
 		else
 			term.setCursorPos(2, 14)
-		    term.clearLine()
+			term.clearLine()
 		end
 	end
 end
@@ -413,6 +417,25 @@ local function DefaultLoop()
 		GLOBAL.STATE = STATES.ERROR
 
 		ShouldStart = false
+
+		pcall(UpdateScreen)
+
+		while true do
+			print(" ")
+			print("DISCONNECTED. I can't find the reactor and/or turbine, Double check everything then reboot system.")
+			print("Type 'reboot' to reboot system.")
+			print(" ")
+
+			local input = read()
+
+			if input == "reboot" then
+				print("Rebooting...")
+
+				sleep(3)
+
+				os.reboot()
+			end
+		end
 	end
 
 	pcall(UpdateScreen)
@@ -437,7 +460,7 @@ local function DefaultLoop()
 		GLOBAL.STATE = STATES.ERROR
 	end
 
-    local EverythingOk, TryRefeshing = AllChecksMet()
+	local EverythingOk, TryRefeshing = AllChecksMet()
 
 	if not EverythingOk then
 		if GLOBAL.STATE == STATES.RUNNING then
@@ -475,11 +498,21 @@ local function DefaultLoop()
 	if GLOBAL.STATE == STATES.ERROR then
 		ShouldStart = false
 
-		print("ERROR. Seems something ain't right, Double check everything then reboot system.")
-
 		while true do
-			local input = read()
+			print(" ")
 			print("ERROR. Seems something ain't right, Double check everything then reboot system.")
+			print("Type 'reboot' to reboot system.")
+			print(" ")
+
+			local input = read()
+
+			if input == "reboot" then
+				print("Rebooting...")
+
+				sleep(3)
+
+				os.reboot()
+			end
 		end
 	end
 
@@ -499,7 +532,10 @@ local function DefaultLoop()
 
 	pcall(UpdateScreen)
 
-	if #FailedChecks > 0 and (GLOBAL.STATE ~= STATES.ERROR and GLOBAL.STATE ~= STATES.EMERGENCY and GLOBAL.STATE ~= STATES.STOPPED) then
+	if
+		#FailedChecks > 0
+		and (GLOBAL.STATE ~= STATES.ERROR and GLOBAL.STATE ~= STATES.EMERGENCY and GLOBAL.STATE ~= STATES.STOPPED)
+	then
 		pcall(NETWORK.REACTOR.scram)
 		GLOBAL.STATE = STATES.STOPPED
 		print("Phantom State Ended. Refreshing system, Rebooting...")
