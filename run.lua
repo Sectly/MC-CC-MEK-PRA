@@ -288,7 +288,7 @@ end
 
 -- Function to display reactor data
 local function drawReactorData(data)
-    if not (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) or GLOBAL.DATA.NOT_CONNECTED then
+	if not (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) or GLOBAL.DATA.NOT_CONNECTED then
 		return nil
 	end
 
@@ -413,6 +413,32 @@ local function LockSystem()
 	end
 end
 
+function ValidateConnection()
+	if not (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) then
+		GLOBAL.DATA.NOT_CONNECTED = true
+	end
+
+	if GLOBAL.DATA.NOT_CONNECTED then
+		GLOBAL.STATE = STATES.ERROR
+
+		ShouldStart = false
+
+		pcall(UpdateScreen)
+
+		while true do
+			pcall(UpdateData)
+
+			sleep(5)
+
+			if (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) and not GLOBAL.DATA.NOT_CONNECTED then
+				os.reboot()
+			else
+				sleep()
+			end
+		end
+	end
+end
+
 -- // Always Active Once Setup Step Is Done
 local function DefaultLoop()
 	local ShouldStart = false
@@ -425,70 +451,56 @@ local function DefaultLoop()
 
 	pcall(UpdateScreen)
 
-	if GLOBAL.DATA.NOT_CONNECTED then
-		GLOBAL.STATE = STATES.ERROR
-
-		ShouldStart = false
-
-		pcall(UpdateScreen)
-
-		while true do
-			pcall(UpdateData)
-		
-			sleep(5)
-
-			if (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) and not GLOBAL.DATA.NOT_CONNECTED then
-				os.reboot()
-			else
-				sleep()
-			end
-		end
-	end
+	ValidateConnection()
 
 	pcall(UpdateScreen)
 
-	if GLOBAL.DATA.ON_SIGNAL then
-		ShouldStart = true
-	else
-		pcall(NETWORK.REACTOR.scram)
+	pcall(function()
+		if GLOBAL.DATA.ON_SIGNAL then
+			ShouldStart = true
+		else
+			pcall(NETWORK.REACTOR.scram)
 
-		GLOBAL.STATE = STATES.STOPPED
-	end
-
-	if GLOBAL.DATA.REACTOR.ONLINE then
-		GLOBAL.STATE = STATES.RUNNING
-	else
-		GLOBAL.STATE = STATES.STOPPED
-	end
-
-	if not GLOBAL.DATA.TURBINE.ENERGY then
-		ShouldStart = false
-
-		GLOBAL.STATE = STATES.ERROR
-	end
-
-	local EverythingOk, TryRefeshing = AllChecksMet()
-
-	if not EverythingOk then
-		if GLOBAL.STATE == STATES.RUNNING then
 			GLOBAL.STATE = STATES.STOPPED
 		end
 
-		ShouldStart = false
+		if GLOBAL.DATA.REACTOR.ONLINE then
+			GLOBAL.STATE = STATES.RUNNING
+		else
+			GLOBAL.STATE = STATES.STOPPED
+		end
 
-		pcall(NETWORK.REACTOR.scram)
-	end
+		if not GLOBAL.DATA.TURBINE.ENERGY then
+			ShouldStart = false
 
-	if TryRefeshing then
-		ShouldStart = false
+			GLOBAL.STATE = STATES.ERROR
+		end
 
-		pcall(NETWORK.REACTOR.scram)
-		GLOBAL.STATE = STATES.STOPPED
+		local EverythingOk, TryRefeshing = AllChecksMet()
 
-		print("Violating Ended. Refreshing system, Rebooting...")
-		sleep(1)
-		os.reboot()
-	end
+		if not EverythingOk then
+			if GLOBAL.STATE == STATES.RUNNING then
+				GLOBAL.STATE = STATES.STOPPED
+			end
+
+			ShouldStart = false
+
+			pcall(NETWORK.REACTOR.scram)
+		end
+
+		if TryRefeshing then
+			ShouldStart = false
+
+			pcall(NETWORK.REACTOR.scram)
+			GLOBAL.STATE = STATES.STOPPED
+
+			print("Violating Ended. Refreshing system, Rebooting...")
+			sleep(1)
+			os.reboot()
+		end
+	end)
+
+	ValidateConnection()
 
 	if GLOBAL.STATE == STATES.EMERGENCY then
 		ShouldStart = false
@@ -523,6 +535,8 @@ local function DefaultLoop()
 		end
 	end
 
+	ValidateConnection()
+
 	if ShouldStart then
 		pcall(NETWORK.REACTOR.activate)
 
@@ -532,12 +546,16 @@ local function DefaultLoop()
 	pcall(UpdateScreen)
 
 	if GLOBAL.CONFIG.LOCKED then
+		ValidateConnection()
+
 		pcall(NETWORK.REACTOR.scram)
 
 		LockSystem()
 	end
 
 	pcall(UpdateScreen)
+
+	ValidateConnection()
 
 	if
 		#FailedChecks > 0
@@ -753,7 +771,7 @@ local function Init()
 
 		shell.run("clear")
 
-		if (NETWORK and NETWORK.REACTOR and NETWORK.TURBINE) then
+		if NETWORK and NETWORK.REACTOR and NETWORK.TURBINE then
 			pcall(NETWORK.REACTOR.scram)
 		end
 
