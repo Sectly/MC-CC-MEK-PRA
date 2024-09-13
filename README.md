@@ -8,7 +8,7 @@ Run This Script Inside A Computer's Terminal To Install:
 wget run https://raw.githubusercontent.com/Sectly/MC-CC-MEK-PRA/main/install.lua
 ```
 
-Latest: V0.1.4
+> Latest: V0.1.4
 
 ### Setup:
 - 3 Modems: Connect One To Reactor Logic Adapter, One To Turbine Valve And One To Computer's Back Side
