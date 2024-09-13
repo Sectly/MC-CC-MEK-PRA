@@ -1,3 +1,5 @@
+-- // Git Clone
+-- // Author: SquidDev (https://github.com/SquidDev)
 -- // Source: https://gist.githubusercontent.com/SquidDev/e0f82765bfdefd48b0b15a5c06c0603b/raw/clone.lua
 
 local preload = type(package) == "table" and type(package.preload) == "table" and package.preload or {}
@@ -1102,3 +1104,7 @@ preload["clone"] = function(...)
 	print()
 end
 return preload["clone"](...)
+
+-- // Git Clone
+-- // Author: SquidDev (https://github.com/SquidDev)
+-- // Source: https://gist.githubusercontent.com/SquidDev/e0f82765bfdefd48b0b15a5c06c0603b/raw/clone.lua

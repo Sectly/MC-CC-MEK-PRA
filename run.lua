@@ -1,6 +1,7 @@
--- // MC-CC-MEK-PRA V0.0.1
+-- // MC-CC-MEK-PRA V0.1.4
 -- // Author: Sectly (https://github.com/Sectly)
 -- // Paid Re-Actor, An ComputerCraft Program That Gives You An Easy To Read And Use GUI To Control And Monitor An Mekanism Fission Reactor
+-- // License: MIT, This Script And All Other Parts Of This Program Is Under The MIT License There Should Be A Copy Included In Your Download Else See: https://github.com/Sectly/MC-CC-MEK-PRA/blob/main/LICENSE
 
 local NETWORK = {
 	REACTOR = peripheral.find("fissionReactorLogicAdapter") or nil,
@@ -283,7 +284,7 @@ local function drawReactorStatus(state, locked)
 	end
 
 	term.setTextColor(colors.white)
-	term.write(" | Paid Re-Actor V0.0.1 By: Sectly")
+	term.write(" | Paid Re-Actor V0.1.4 By: Sectly")
 end
 
 -- Function to display reactor data
@@ -585,7 +586,7 @@ end
 -- // Setup Screen
 local function DoSetup()
 	shell.run("clear")
-	print("Welcome To The Paid Re-Actor V0.0.1 Setup Wizard.")
+	print("Welcome To The Paid Re-Actor V0.1.4 Setup Wizard.")
 
 	print("")
 
@@ -801,3 +802,6 @@ term.setTextColor(colors.green)
 textutils.slowPrint("Booting...")
 
 Init()
+
+-- // MC-CC-MEK-PRA V0.1.4
+-- // Author: Sectly (https://github.com/Sectly)
