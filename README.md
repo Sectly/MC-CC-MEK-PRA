@@ -20,11 +20,16 @@ wget run https://raw.githubusercontent.com/Sectly/MC-CC-MEK-PRA/main/install.lua
 - A Lever/Redstone Input On Top To Turn It On/Off
 
 ### Features:
-Meltdown Detection & Prevention (Emergency Stop/SCRAM On Coolant Low Or Temperature High, Etc)
-Monitor/Controls Reactor Safely
-Automated Stop On Issues (Fuel Low, Turbine Full, Waste Full, Etc)
-Configurable (On (Re)Install You Have A Step-By-Step Guided Config Page)
+1. Meltdown Detection & Prevention (Emergency Stop/SCRAM On Coolant Low Or Temperature High, Etc)
+
+2. Monitor/Controls Reactor Safely
+
+3. Automated Stop On Issues (Fuel Low, Turbine Full, Waste Full, Etc)
+  
+4. Configurable (On (Re)Install You Have A Step-By-Step Guided Config Page)
+
 And Some Other Helpfull Features
+
 
 ### Images:
 
