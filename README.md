@@ -9,15 +9,15 @@ wget run https://raw.githubusercontent.com/Sectly/MC-CC-MEK-PRA/main/install.lua
 ```
 
 ### Setup:
-- 1. 3 Modems: Connect One To Reactor Logic Adapter, One To Turbine Valve And One To Computer's Back Side
+- 3 Modems: Connect One To Reactor Logic Adapter, One To Turbine Valve And One To Computer's Back Side
 
-- 2. Network Cables: Connect All Modems To Each Other With Network Cables
+- Network Cables: Connect All Modems To Each Other With Network Cables
 
-- 3. A 5 X 3 Monitor (5 Wide, 3 Tall) Is Recommended (Can Be Bigger Tho, Ensure To Connect To Right Side)
+- A 5 X 3 Monitor (5 Wide, 3 Tall) Is Recommended (Can Be Bigger Tho, Ensure To Connect To Right Side)
 
-- 4. Alarm/Redstone Output On Left Side (It Will Emit Redstone On Emergency, Good For An Alarm Or Something)
+- Alarm/Redstone Output On Left Side (It Will Emit Redstone On Emergency, Good For An Alarm Or Something)
 
-- 5. A Lever/Redstone Input On Top To Turn It On/Off
+- A Lever/Redstone Input On Top To Turn It On/Off
 
 ### Features:
 Meltdown Detection & Prevention (Emergency Stop/SCRAM On Coolant Low Or Temperature High, Etc)
