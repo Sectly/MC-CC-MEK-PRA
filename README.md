@@ -11,7 +11,7 @@ wget run https://raw.githubusercontent.com/Sectly/MC-CC-MEK-PRA/main/install.lua
 ### Setup:
 - 3 Modems: Connect One To Reactor Logic Adapter, One To Turbine Valve And One To Computer's Back Side
 
-- Network Cables: Connect All Modems To Each Other With Network Cables
+- Network Cables: Connect All Modems To Each Other With Network Cables (Right Click On Modems To Register Them, It Should Get A Red Outline When Registred)
 
 - A 5 X 3 Monitor (5 Wide, 3 Tall) Is Recommended (Can Be Bigger Tho, Ensure To Connect To Right Side)
 
